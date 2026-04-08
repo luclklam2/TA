@@ -197,8 +197,8 @@
                     <div class="flex items-center justify-between"><div class="flex flex-col text-left"><span class="text-2xl font-black text-indigo-500 readable-nums" id="weekly-lead-rj-REENEX">RJ: 0</span><span class="text-2xl font-black text-indigo-500 readable-nums" id="weekly-lead-nj-REENEX">NJ: 0</span></div><span class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-4xl font-black shadow-inner" id="weekly-lead-total-REENEX">0</span></div>
                 </div>
                 <div onclick="toggleLeadList('ELYZE')" class="lead-card cyber-card p-6 border-b-8 border-emerald-400 text-left">
-                    <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1 text-left text-left">Leads (AC Date)</p>
-                    <p class="text-xl font-black text-slate-900 mb-3 text-left text-left">ELYZE</p>
+                    <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1 text-left">Leads (AC Date)</p>
+                    <p class="text-xl font-black text-slate-900 mb-3 text-left">ELYZE</p>
                     <div class="flex items-center justify-between text-left"><div class="flex flex-col text-left"><span class="text-2xl font-black text-emerald-500 readable-nums" id="weekly-lead-rj-ELYZE">RJ: 0</span><span class="text-2xl font-black text-emerald-500 readable-nums" id="weekly-lead-nj-ELYZE">NJ: 0</span></div><span class="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-4xl font-black shadow-inner" id="weekly-lead-total-ELYZE">0</span></div>
                 </div>
             </div>
@@ -220,12 +220,12 @@
                     <div class="flex items-center justify-between text-left"><div class="flex flex-col text-left"><span class="text-2xl font-black text-rose-600 readable-nums" id="weekly-rj-DERMES">RJ: 0</span><span class="text-2xl font-black text-rose-600 readable-nums" id="weekly-nj-DERMES">NJ: 0</span></div><span class="px-4 py-2 bg-rose-50 text-rose-700 rounded-xl text-4xl font-black shadow-inner" id="weekly-total-DERMES">0</span></div>
                 </div>
                 <div onclick="toggleWeeklyList('REENEX')" class="weekly-card cyber-card p-6 border-b-8 border-indigo-500 text-left">
-                    <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1 text-left text-left">Offer (Accepted/Offered)</p>
+                    <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1 text-left">Offer (Accepted/Offered)</p>
                     <p class="text-xl font-black text-slate-900 mb-3 text-left">REENEX</p>
                     <div class="flex items-center justify-between text-left"><div class="flex flex-col text-left"><span class="text-2xl font-black text-indigo-600 readable-nums" id="weekly-rj-REENEX">RJ: 0</span><span class="text-2xl font-black text-indigo-600 readable-nums" id="weekly-nj-REENEX">NJ: 0</span></div><span class="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-4xl font-black shadow-inner" id="weekly-total-REENEX">0</span></div>
                 </div>
                 <div onclick="toggleWeeklyList('ELYZE')" class="weekly-card cyber-card p-6 border-b-8 border-emerald-500 text-left">
-                    <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1 text-left text-left text-left">Offer (Accepted/Offered)</p>
+                    <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1 text-left">Offer (Accepted/Offered)</p>
                     <p class="text-xl font-black text-slate-900 mb-3 text-left">ELYZE</p>
                     <div class="flex items-center justify-between text-left"><div class="flex flex-col text-left"><span class="text-2xl font-black text-emerald-600 readable-nums" id="weekly-rj-ELYZE">RJ: 0</span><span class="text-2xl font-black text-emerald-600 readable-nums" id="weekly-nj-ELYZE">NJ: 0</span></div><span class="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-4xl font-black shadow-inner" id="weekly-total-ELYZE">0</span></div>
                 </div>
@@ -306,6 +306,7 @@
                             <tr>
                                 <th class="text-left border-r border-indigo-100 px-6">Brand</th>
                                 <th class="text-left border-r border-indigo-100 px-6">PIC</th>
+                                <th class="border-r border-indigo-100 text-amber-700 px-4">Commitment</th>
                                 <th class="border-r border-indigo-100 text-indigo-700 px-4">Lead</th>
                                 <th class="border-r border-indigo-100 text-emerald-700 px-4">NJ Offer</th>
                                 <th class="text-emerald-700 px-4">RJ Offer</th>
@@ -381,15 +382,27 @@
 
     <script>
         // --- 核心變數 ---
-        let dataS1 = [], headersS1 = [], dataS2 = [], headersS2 = [];
+        let dataS1 = [], headersS1 = [], dataS2 = [], headersS2 = [], dataS3 = [], headersS3 = [], dataS4 = [], headersS4 = [];
         let currentDetailMode = ""; let currentDetailKey = "";
         let availableMonths = [];
         let selectedBatchMonths = [];
         let selectedPositions = ['E1']; // 預設顯示 E1
 
-        const SHEET1_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQI5NkFNnXAqi78qHKhg6CRZ4ZTVwu1Tevpo2PXdQn85pZWh6GeAhK29Ih4U7B9QKzqucIDomXJh94L/pub?gid=0&single=true&output=csv';
-        const SHEET2_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQI5NkFNnXAqi78qHKhg6CRZ4ZTVwu1Tevpo2PXdQn85pZWh6GeAhK29Ih4U7B9QKzqucIDomXJh94L/pub?gid=906179987&single=true&output=csv';
+        // 【重點設定】更新試算表來源
+        const SHEET_DOC_ID = '2PACX-1vQXIOtn2kGic7udL_HgjK2aSYCrHPqfBlrlu2MPROnd6ID2Lp9cLv8CxaWzbECBj2462-Wkur2LpdBX';
+        const SHEET1_GID = '0'; // 第一頁的 GID 預設為 0
+        const SHEET2_GID = '946029870'; 
+        const SHEET3_GID = '1612736070'; // 新增 Sheet 3 的 GID
+        const SHEET4_GID = '1807698538'; // 新增 Sheet 4 (Commitment) 的 GID
+
+        const SHEET1_BASE_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_DOC_ID}/pub?gid=${SHEET1_GID}&single=true&output=csv`;
+        const SHEET2_BASE_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_DOC_ID}/pub?gid=${SHEET2_GID}&single=true&output=csv`;
+        const SHEET3_BASE_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_DOC_ID}/pub?gid=${SHEET3_GID}&single=true&output=csv`;
+        const SHEET4_BASE_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_DOC_ID}/pub?gid=${SHEET4_GID}&single=true&output=csv`;
+        
         const excludedNames = ['jennifer.tokf', 'milk.yungcy', 'abel.wongyw', 'lavina.chan'];
+        
+        // 欄位順序對照表 (A欄=0, B欄=1, C欄=2...)
         const S1_IDX = { BRAND: 0, FLOOR: 11, OFFER_DATE: 29, RJNJ: 12, NAME: 13, STAFF_ID: 9, STAFF_NAME: 10, ONBOARD_DATE: 27, LEAD_DATE: 28, STATUS: 22 };
         const S2_IDX = { BRAND: 0, FLOOR: 1, PIC: 2, POS: 3, STAFF_ID: 4, NAME: 5, RESIGN: 9, OFFER: 13, SHOULD: 15, ONBOARD: 14, GAP: 17, NJ_OFFER: 21 };
 
@@ -414,11 +427,78 @@
         });
 
         // --- 工具函式 ---
-        function getThisMonday() { const today = new Date(); const diff = today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1); return new Date(today.getFullYear(), today.getMonth(), diff, 0, 0, 0, 0); }
-        function getLocalDateFromInput(val) { if (!val) return null; const [y, m, d] = val.split('-').map(Number); return new Date(y, m - 1, d, 0, 0, 0, 0); }
-        function formatDateToISO(date) { const y = date.getFullYear(); const m = String(date.getMonth() + 1).padStart(2, '0'); const d = String(date.getDate()).padStart(2, '0'); return `${y}-${m}-${d}`; }
-        function parseDate(d) { if (!d || d === '-' || d.trim() === "") return null; const ms = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]; const p = d.split(/[\s/-]+/); if (p.length === 3) { let day = parseInt(p[0]), mIdx = ms.indexOf(p[1].toLowerCase().substring(0, 3)), yr = parseInt(p[2]); if (day && mIdx !== -1 && yr) return new Date(yr, mIdx, day, 0, 0, 0, 0); } const ts = Date.parse(d); return isNaN(ts) ? null : new Date(ts); }
-        function getZColumnClass(v) { if (v.toUpperCase().includes('WITHDRAW')) return "bg-rose-100 text-rose-800 text-center"; if (v.toUpperCase().includes('ONBOARD')) return "bg-emerald-100 text-emerald-900 text-center"; return "bg-amber-100 text-amber-800 text-center"; }
+        function getThisMonday() { 
+            const today = new Date(); 
+            const diff = today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1); 
+            return new Date(today.getFullYear(), today.getMonth(), diff, 0, 0, 0, 0); 
+        }
+        function getLocalDateFromInput(val) { 
+            if (!val) return null; 
+            const [y, m, d] = val.split('-').map(Number); 
+            return new Date(y, m - 1, d, 0, 0, 0, 0); 
+        }
+        function formatDateToISO(date) { 
+            const y = date.getFullYear(); 
+            const m = String(date.getMonth() + 1).padStart(2, '0'); 
+            const d = String(date.getDate()).padStart(2, '0'); 
+            return `${y}-${m}-${d}`; 
+        }
+        function parseDate(d) { 
+            if (!d || d === '-' || d.trim() === "") return null; 
+            const ms = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]; 
+            const p = d.split(/[\s/-]+/); 
+            if (p.length === 3) { 
+                let day = parseInt(p[0]), mIdx = ms.indexOf(p[1].toLowerCase().substring(0, 3)), yr = parseInt(p[2]); 
+                if (day && mIdx !== -1 && yr) return new Date(yr, mIdx, day, 0, 0, 0, 0); 
+            } 
+            const ts = Date.parse(d); 
+            return isNaN(ts) ? null : new Date(ts); 
+        }
+        function getZColumnClass(v) { 
+            if (v.toUpperCase().includes('WITHDRAW')) return "bg-rose-100 text-rose-800 text-center"; 
+            if (v.toUpperCase().includes('ONBOARD')) return "bg-emerald-100 text-emerald-900 text-center"; 
+            return "bg-amber-100 text-amber-800 text-center"; 
+        }
+
+        // 智慧判斷日期區間 (尋找 Commitment Sheet 中符合的欄位名稱)
+        function getCommitmentColumn(headers, targetDate) {
+            if (!targetDate) return null;
+            const targetTs = targetDate.getTime();
+            const year = targetDate.getFullYear();
+            // 包含常見月份縮寫與可能的拼字錯誤防呆(如: arpil -> apr)
+            const monthMap = { jan:0, feb:1, mar:2, apr:3, arp:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+            
+            function parseStr(str) {
+                const match = str.toLowerCase().match(/(\d+)\s*([a-z]+)/);
+                if (!match) return null;
+                const day = parseInt(match[1]);
+                const mStr = match[2].substring(0, 3);
+                const mIdx = monthMap[mStr];
+                if (mIdx !== undefined) return new Date(year, mIdx, day);
+                return null;
+            }
+
+            for (let i = 0; i < headers.length; i++) {
+                const h = headers[i];
+                if (h.toUpperCase() === 'BRAND' || h.toUpperCase() === 'PIC') continue;
+                
+                // 移除可能存在的換行符號 (\n 或 \r)
+                const cleanH = h.replace(/[\r\n]+/g, ' ');
+                const parts = cleanH.split('-');
+                if (parts.length >= 2) {
+                    const d1 = parseStr(parts[0]);
+                    const d2 = parseStr(parts[1]);
+                    if (d1 && d2) {
+                        d2.setHours(23, 59, 59, 999);
+                        // 若選定的起始日落在該欄位的日期區間內
+                        if (targetTs >= d1.getTime() && targetTs <= d2.getTime()) {
+                            return h;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
 
         // --- 入職批次統計 ---
         function calculateBatchCounts() {
@@ -622,19 +702,58 @@
             const poStartTs = poStart ? poStart.getTime() : 0;
             const poEndLimitTs = poEnd ? new Date(poEnd.getTime()).setHours(23,59,59,999) : Infinity;
 
+            // 尋找對應的 Commitment 欄位
+            const targetCommitmentCol = getCommitmentColumn(headersS4, pStart);
+            const s4PicCol = headersS4.find(h => h.trim().toUpperCase() === 'PIC');
+            const s4BrandCol = headersS4.find(h => h.trim().toUpperCase() === 'BRAND');
+
             ['DERMES', 'ELYZE', 'REENEX'].forEach(brand => {
                 const brDataS2 = dataS2.filter(i => (i[headersS2[S2_IDX.BRAND]]||"").trim().toUpperCase() === brand && !(i[headersS2[S2_IDX.NAME]]||"").toUpperCase().includes("TOTAL"));
                 let bs = { o:0, s:0, ob:0, g:0, njo:0 };
-                brDataS2.forEach(i => { bs.o += parseFloat((i[headersS2[S2_IDX.OFFER]]||"0").replace(/,/g,'')) || 0; bs.s += parseFloat((i[headersS2[S2_IDX.SHOULD]]||"0").replace(/,/g,'')) || 0; bs.ob += parseFloat((i[headersS2[S2_IDX.ONBOARD]]||"0").replace(/,/g,'')) || 0; bs.g += parseFloat((i[headersS2[S2_IDX.GAP]]||"0").replace(/,/g,'')) || 0; bs.njo += parseFloat((i[headersS2[S2_IDX.NJ_OFFER]]||"0").replace(/,/g,'')) || 0; });
+                brDataS2.forEach(i => { 
+                    bs.o += parseFloat((i[headersS2[S2_IDX.OFFER]]||"0").replace(/,/g,'')) || 0; 
+                    bs.s += parseFloat((i[headersS2[S2_IDX.SHOULD]]||"0").replace(/,/g,'')) || 0; 
+                    bs.ob += parseFloat((i[headersS2[S2_IDX.ONBOARD]]||"0").replace(/,/g,'')) || 0; 
+                    bs.g += parseFloat((i[headersS2[S2_IDX.GAP]]||"0").replace(/,/g,'')) || 0; 
+                    bs.njo += parseFloat((i[headersS2[S2_IDX.NJ_OFFER]]||"0").replace(/,/g,'')) || 0; 
+                });
                 gt.o+=bs.o; gt.s+=bs.s; gt.ob+=bs.ob; gt.g+=bs.g; gt.njo+=bs.njo;
-                sumBody.innerHTML += `<tr class="hover:bg-emerald-50 transition font-bold text-center"><td class="px-10 py-5 text-left">${brand}</td><td>${bs.o.toLocaleString()}</td><td>${bs.s.toLocaleString()}</td><td class="text-emerald-800 text-2xl">${bs.ob.toLocaleString()}</td><td class="${bs.g<0?'text-rose-700 font-black':''}">${bs.g.toLocaleString()}</td><td>${bs.njo.toLocaleString()}</td></tr>`;
+                sumBody.innerHTML += `
+                    <tr class="hover:bg-emerald-50 transition font-bold text-center">
+                        <td class="px-10 py-5 text-left">${brand}</td>
+                        <td>${bs.o.toLocaleString()}</td>
+                        <td>${bs.s.toLocaleString()}</td>
+                        <td class="text-emerald-800 text-2xl">${bs.ob.toLocaleString()}</td>
+                        <td class="${bs.g<0?'text-rose-700 font-black':''}">${bs.g.toLocaleString()}</td>
+                        <td>${bs.njo.toLocaleString()}</td>
+                    </tr>`;
                 
                 const uniquePICs = [...new Set(brDataS2.map(i => i[headersS2[S2_IDX.PIC]]).filter(v => v))];
+                let perfRows = []; // 準備陣列來處理合併儲存格
+                
                 uniquePICs.forEach(picName => {
                     const picRowsS2 = brDataS2.filter(i => i[headersS2[S2_IDX.PIC]] === picName);
                     let ps = { r:0, o:0, s:0, ob:0, g:0, njo:0 };
-                    picRowsS2.forEach(i => { ps.r += (parseFloat(i[headersS2[9]])||0) + (parseFloat(i[headersS2[10]])||0); ps.o += parseFloat((i[headersS2[S2_IDX.OFFER]]||"0").replace(/,/g,'')) || 0; ps.s += parseFloat((i[headersS2[S2_IDX.SHOULD]]||"0").replace(/,/g,'')) || 0; ps.ob += parseFloat((i[headersS2[S2_IDX.ONBOARD]]||"0").replace(/,/g,'')) || 0; ps.g += parseFloat((i[headersS2[S2_IDX.GAP]]||"0").replace(/,/g,'')) || 0; ps.njo += parseFloat((i[headersS2[S2_IDX.NJ_OFFER]]||"0").replace(/,/g,'')) || 0; });
-                    picBody.innerHTML += `<tr class="hover:bg-blue-50 transition font-bold text-center"><td class="text-left border-r border-blue-50 px-6">${brand}</td><td class="text-left border-r border-blue-50 px-6">${picName}</td><td class="text-rose-700 font-black border-r border-blue-50 px-4">${ps.r}</td><td class="border-r border-blue-50 text-slate-600 text-xs px-4">${ps.o}</td><td class="border-r border-blue-50 px-4">${ps.s}</td><td class="text-emerald-800 font-black text-lg border-r border-blue-50 px-4">${ps.ob}</td><td class="border-r border-blue-50 ${ps.g<0?'text-rose-700 font-black':''} px-4">${ps.g}</td><td class="px-4">${ps.njo}</td></tr>`;
+                    picRowsS2.forEach(i => { 
+                        ps.r += (parseFloat(i[headersS2[9]])||0) + (parseFloat(i[headersS2[10]])||0); 
+                        ps.o += parseFloat((i[headersS2[S2_IDX.OFFER]]||"0").replace(/,/g,'')) || 0; 
+                        ps.s += parseFloat((i[headersS2[S2_IDX.SHOULD]]||"0").replace(/,/g,'')) || 0; 
+                        ps.ob += parseFloat((i[headersS2[S2_IDX.ONBOARD]]||"0").replace(/,/g,'')) || 0; 
+                        ps.g += parseFloat((i[headersS2[S2_IDX.GAP]]||"0").replace(/,/g,'')) || 0; 
+                        ps.njo += parseFloat((i[headersS2[S2_IDX.NJ_OFFER]]||"0").replace(/,/g,'')) || 0; 
+                    });
+                    
+                    picBody.innerHTML += `
+                        <tr class="hover:bg-blue-50 transition font-bold text-center">
+                            <td class="text-left border-r border-blue-50 px-6">${brand}</td>
+                            <td class="text-left border-r border-blue-50 px-6">${picName}</td>
+                            <td class="text-rose-700 font-black border-r border-blue-50 px-4">${ps.r}</td>
+                            <td class="border-r border-blue-50 text-slate-600 text-xs px-4">${ps.o}</td>
+                            <td class="border-r border-blue-50 px-4">${ps.s}</td>
+                            <td class="text-emerald-800 font-black text-lg border-r border-blue-50 px-4">${ps.ob}</td>
+                            <td class="border-r border-blue-50 ${ps.g<0?'text-rose-700 font-black':''} px-4">${ps.g}</td>
+                            <td class="px-4">${ps.njo}</td>
+                        </tr>`;
                     
                     if (pStart && pEndEl.value) {
                         const picFloors = picRowsS2.map(i => (i[headersS2[S2_IDX.FLOOR]]||"").trim().toUpperCase());
@@ -669,19 +788,77 @@
                         const njOffers = offerRows.filter(r => (r[headersS1[S1_IDX.RJNJ]]||"").trim().toUpperCase() === "NJ").length;
                         const rjOffers = offerRows.filter(r => (r[headersS1[S1_IDX.RJNJ]]||"").trim().toUpperCase() === "RJ").length;
 
-                        if (leads > 0 || njOffers > 0 || rjOffers > 0) {
-                            perfBody.innerHTML += `<tr class="hover:bg-indigo-50 transition font-bold text-center">
-                                <td class="text-left border-r border-indigo-100 px-6">${brand}</td>
-                                <td class="text-left border-r border-indigo-100 px-6">${picName}</td>
-                                <td class="border-r border-indigo-100 text-indigo-700 text-xl px-4">${leads}</td>
-                                <td class="border-r border-indigo-100 text-emerald-700 text-xl px-4">${njOffers}</td>
-                                <td class="text-emerald-700 text-xl px-4">${rjOffers}</td>
-                            </tr>`;
+                        // 判斷基礎名字
+                        const getBaseName = (name) => name.includes('-') ? name.split('-')[1].trim() : name.trim();
+                        const baseName = getBaseName(picName);
+
+                        // 從 Sheet 4 獲取對應的 Commitment
+                        let commitmentDisplay = "0";
+                        if (targetCommitmentCol && s4PicCol && s4BrandCol) {
+                            // 先找完全符合的 PIC 名字
+                            let s4Row = dataS4.find(r => (r[s4BrandCol]||"").trim().toUpperCase() === brand.toUpperCase() && (r[s4PicCol]||"").trim() === picName.trim());
+                            
+                            // 找不到的話，找 BaseName 符合的 (例如 Sheet4 只寫 "Mia")
+                            if (!s4Row) {
+                                s4Row = dataS4.find(r => (r[s4BrandCol]||"").trim().toUpperCase() === brand.toUpperCase() && getBaseName(r[s4PicCol]||"") === baseName);
+                            }
+
+                            if (s4Row && s4Row[targetCommitmentCol] && s4Row[targetCommitmentCol].toString().trim() !== "") {
+                                commitmentDisplay = s4Row[targetCommitmentCol];
+                            }
                         }
+
+                        // 將資料暫存至陣列中，以便後續判斷合併
+                        perfRows.push({ brand, picName, baseName, commitmentDisplay, leads, njOffers, rjOffers });
                     }
                 });
+
+                // 處理 Commitment 合併儲存格並輸出至 HTML
+                if (pStart && pEndEl.value && perfRows.length > 0) {
+                    let i = 0;
+                    while (i < perfRows.length) {
+                        let rowspan = 1;
+                        let currentBase = perfRows[i].baseName;
+                        let j = i + 1;
+                        // 尋找連續且 BaseName 相同的行
+                        while (j < perfRows.length && perfRows[j].baseName === currentBase) {
+                            rowspan++;
+                            perfRows[j].skipCommitment = true; // 標記為不渲染 TD
+                            j++;
+                        }
+                        perfRows[i].rowspan = rowspan;
+                        i = j;
+                    }
+
+                    perfRows.forEach(r => {
+                        let commitmentTd = '';
+                        if (!r.skipCommitment) {
+                            let rsAttr = r.rowspan > 1 ? `rowspan="${r.rowspan}"` : '';
+                            // 加上 align-middle 與 bg-white/40 讓合併儲存格凸顯且置中
+                            commitmentTd = `<td ${rsAttr} class="border-r border-indigo-100 text-amber-600 text-xl font-black px-4 align-middle bg-white/40">${r.commitmentDisplay}</td>`;
+                        }
+
+                        perfBody.innerHTML += `
+                            <tr class="hover:bg-indigo-50 transition font-bold text-center">
+                                <td class="text-left border-r border-indigo-100 px-6">${r.brand}</td>
+                                <td class="text-left border-r border-indigo-100 px-6">${r.picName}</td>
+                                ${commitmentTd}
+                                <td class="border-r border-indigo-100 text-indigo-700 text-xl px-4">${r.leads}</td>
+                                <td class="border-r border-indigo-100 text-emerald-700 text-xl px-4">${r.njOffers}</td>
+                                <td class="text-emerald-700 text-xl px-4">${r.rjOffers}</td>
+                            </tr>`;
+                    });
+                }
             });
-            sumBody.innerHTML += `<tr class="bg-slate-100 font-black border-t-2 border-slate-300 text-center"><td class="text-left px-10 text-indigo-900">GRAND TOTAL</td><td>${gt.o.toLocaleString()}</td><td>${gt.s.toLocaleString()}</td><td class="text-emerald-900 text-2xl">${gt.ob.toLocaleString()}</td><td class="${gt.g<0?'text-rose-800':''}">${gt.g.toLocaleString()}</td><td>${gt.njo.toLocaleString()}</td></tr>`;
+            sumBody.innerHTML += `
+                <tr class="bg-slate-100 font-black border-t-2 border-slate-300 text-center">
+                    <td class="text-left px-10 text-indigo-900">GRAND TOTAL</td>
+                    <td>${gt.o.toLocaleString()}</td>
+                    <td>${gt.s.toLocaleString()}</td>
+                    <td class="text-emerald-900 text-2xl">${gt.ob.toLocaleString()}</td>
+                    <td class="${gt.g<0?'text-rose-800':''}">${gt.g.toLocaleString()}</td>
+                    <td>${gt.njo.toLocaleString()}</td>
+                </tr>`;
         }
 
         // 多選 Position 的更新標籤函式
@@ -773,12 +950,13 @@
                     const brand = key;
                     const stats = hrMap.get(key);
                     if (stats.leads > 0 || stats.nj > 0 || stats.rj > 0) {
-                        hrBody.innerHTML += `<tr class="hover:bg-teal-50 transition font-bold text-center">
-                            <td class="text-left border-r border-teal-100 px-6">${brand}</td>
-                            <td class="border-r border-teal-100 text-indigo-700 text-xl px-4">${stats.leads}</td>
-                            <td class="border-r border-teal-100 text-emerald-700 text-xl px-4">${stats.nj}</td>
-                            <td class="text-emerald-700 text-xl px-4">${stats.rj}</td>
-                        </tr>`;
+                        hrBody.innerHTML += `
+                            <tr class="hover:bg-teal-50 transition font-bold text-center">
+                                <td class="text-left border-r border-teal-100 px-6">${brand}</td>
+                                <td class="border-r border-teal-100 text-indigo-700 text-xl px-4">${stats.leads}</td>
+                                <td class="border-r border-teal-100 text-emerald-700 text-xl px-4">${stats.nj}</td>
+                                <td class="text-emerald-700 text-xl px-4">${stats.rj}</td>
+                            </tr>`;
                     }
                 });
             }
@@ -857,7 +1035,16 @@
                 return refA.localeCompare(refB);
             });
             
-            tbody.innerHTML = list.map(row => `<tr class="hover:bg-blue-50 transition font-bold text-center"><td class="text-left border-r border-blue-50 text-indigo-600 font-black text-sm px-6">${row[headersS1[S1_IDX.BRAND]]}</td><td class="border-r border-blue-50 text-slate-800 text-sm px-4">${row[headersS1[S1_IDX.LEAD_DATE]] || "-"}</td><td class="border-r border-blue-50 text-slate-800 text-sm px-4">${row[headersS1[S1_IDX.OFFER_DATE]] || "-"}</td><td class="border-r border-blue-50 text-slate-900 text-sm font-black px-4">${row[headersS1[S1_IDX.STATUS]] || "-"}</td><td class="border-r border-blue-50 text-indigo-700 uppercase text-sm px-4">${row[headersS1[S1_IDX.RJNJ]]}</td><td class="text-left border-r border-blue-50 text-slate-900 font-black text-sm px-6">${row[headersS1[S1_IDX.NAME]]}</td><td class="text-left text-slate-600 font-medium text-xs px-6">${((row[headersS1[S1_IDX.STAFF_ID]]||"")+" "+(row[headersS1[S1_IDX.STAFF_NAME]]||"")).trim()}</td></tr>`).join('');
+            tbody.innerHTML = list.map(row => `
+                <tr class="hover:bg-blue-50 transition font-bold text-center">
+                    <td class="text-left border-r border-blue-50 text-indigo-600 font-black text-sm px-6">${row[headersS1[S1_IDX.BRAND]]}</td>
+                    <td class="border-r border-blue-50 text-slate-800 text-sm px-4">${row[headersS1[S1_IDX.LEAD_DATE]] || "-"}</td>
+                    <td class="border-r border-blue-50 text-slate-800 text-sm px-4">${row[headersS1[S1_IDX.OFFER_DATE]] || "-"}</td>
+                    <td class="border-r border-blue-50 text-slate-900 text-sm font-black px-4">${row[headersS1[S1_IDX.STATUS]] || "-"}</td>
+                    <td class="border-r border-blue-50 text-indigo-700 uppercase text-sm px-4">${row[headersS1[S1_IDX.RJNJ]]}</td>
+                    <td class="text-left border-r border-blue-50 text-slate-900 font-black text-sm px-6">${row[headersS1[S1_IDX.NAME]]}</td>
+                    <td class="text-left text-slate-600 font-medium text-xs px-6">${((row[headersS1[S1_IDX.STAFF_ID]]||"")+" "+(row[headersS1[S1_IDX.STAFF_NAME]]||"")).trim()}</td>
+                </tr>`).join('');
             area.classList.remove('hidden'); area.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
@@ -893,8 +1080,9 @@
             availableMonths = [];
             // 預設若是3月，則從4月開始；否則從當月開始
             let startMonth = (curM === 3) ? 4 : curM;
-            
-            for(let i=0; i<5; i++) {
+
+            // 補回：產生 5 個月份的按鈕邏輯
+            for(let i = 0; i < 5; i++) {
                 let m = startMonth + i;
                 if(m > 12) m -= 12;
                 availableMonths.push(m);
@@ -909,17 +1097,12 @@
                     selector.innerHTML += `<button onclick="toggleMonth(${m})" class="month-btn inactive" id="btn-month-${m}">${m}月</button>`;
                 });
             }
-            updateMonthButtons();
-
-            const monday = getThisMonday(), isoMon = formatDateToISO(monday), isoToday = formatDateToISO(today);
-            ['leadStart', 'leadEnd', 'offerStart', 'offerEnd', 'pendingStart', 'pendingEnd', 'perfStart', 'perfEnd', 'perfObStart', 'perfObEnd', 'hrPerfStart', 'hrPerfEnd', 'hrPerfObStart', 'hrPerfObEnd'].forEach(id => { const el = document.getElementById(id); if(el) el.value = id.includes('End') ? isoToday : isoMon; });
-            ['useObFilter', 'usePerfObFilter', 'useHrPerfObFilter'].forEach(id => { const el = document.getElementById(id); if(el) el.checked = false; });
-
-            let s1L = false, s2L = false;
             
-            // 安全檢查：等待兩份 Sheet 都讀取完畢後，再進行所有統計，避免時間差報錯
+            let s1L = false, s2L = false, s3L = false, s4L = false;
+            
+            // 安全檢查：等待所有 Sheet 都讀取完畢後，再進行所有統計，避免時間差報錯
             const checkDone = () => { 
-                if(s1L && s2L) {
+                if(s1L && s2L && s3L && s4L) {
                     populateFilters(); 
                     calculateBatchCounts(); 
                     calculateWeeklyOffers(); 
@@ -931,20 +1114,107 @@
                     document.getElementById('loadingStatus')?.classList.add('hidden');
                     ['brandSummaryArea','picSummaryArea','picPerformanceArea','hrPerformanceArea'].forEach(id => document.getElementById(id)?.classList.remove('hidden'));
                 }
-            };
+            }; // <--- 修復了這裡缺失的括號
+
+            updateMonthButtons();
+
+            const monday = getThisMonday();
+            const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+            const isoMon = formatDateToISO(monday);
+            const isoSun = formatDateToISO(sunday);
+            
+            ['leadStart', 'leadEnd', 'offerStart', 'offerEnd', 'pendingStart', 'pendingEnd', 'perfStart', 'perfEnd', 'perfObStart', 'perfObEnd', 'hrPerfStart', 'hrPerfEnd', 'hrPerfObStart', 'hrPerfObEnd'].forEach(id => { 
+                const el = document.getElementById(id); 
+                if(el) el.value = id.includes('End') ? isoSun : isoMon; 
+            });
+            ['useObFilter', 'usePerfObFilter', 'useHrPerfObFilter'].forEach(id => { const el = document.getElementById(id); if(el) el.checked = false; });
 
             try {
-                const r1 = await fetch(SHEET1_BASE_URL + `&t=${Date.now()}`), r2 = await fetch(SHEET2_BASE_URL + `&t=${Date.now()}`);
-                const t1 = await r1.text(), t2 = await r2.text();
+                // 同時 fetch 4份表單
+                const [r1, r2, r3, r4] = await Promise.all([
+                    fetch(SHEET1_BASE_URL + `&t=${Date.now()}`),
+                    fetch(SHEET2_BASE_URL + `&t=${Date.now()}`),
+                    fetch(SHEET3_BASE_URL + `&t=${Date.now()}`),
+                    fetch(SHEET4_BASE_URL + `&t=${Date.now()}`)
+                ]);
+                const [t1, t2, t3, t4] = await Promise.all([r1.text(), r2.text(), r3.text(), r4.text()]);
+
                 Papa.parse(t1, { header: true, skipEmptyLines: true, complete: res => { 
                     headersS1 = res.meta.fields; dataS1 = res.data.filter(row => !excludedNames.includes((row[headersS1[S1_IDX.STAFF_NAME]]||"").trim().toLowerCase()));
                     const ah1Time = headersS1[33] || "未知"; const updateEl = document.getElementById('lastUpdateDisplay'); if(updateEl) updateEl.innerText = `同步：${ah1Time}`;
                     s1L = true; checkDone();
                 } });
+
                 Papa.parse(t2, { header: true, skipEmptyLines: true, complete: res => { 
-                    headersS2 = res.meta.fields; dataS2 = res.data.filter(row => (row[res.meta.fields[S2_IDX.POS]]||"").trim().toUpperCase() !== 'HIPO E1' && !excludedNames.includes((row[res.meta.fields[S2_IDX.NAME]]||"").trim().toLowerCase()));
+                    headersS2 = res.meta.fields; 
+                    dataS2 = res.data.filter(row => (row[res.meta.fields[S2_IDX.POS]]||"").trim().toUpperCase() !== 'HIPO E1' && !excludedNames.includes((row[res.meta.fields[S2_IDX.NAME]]||"").trim().toLowerCase()));
                     s2L = true; checkDone();
                 } });
+
+                Papa.parse(t3, { header: true, skipEmptyLines: true, complete: res => { 
+                    headersS3 = res.meta.fields; 
+                    dataS3 = res.data;
+                    s3L = true; checkDone();
+                } });
+
+                Papa.parse(t4, { 
+                    header: false, // 改用 false，讓系統自行判斷真正的標題列 (無視上方空白列)
+                    skipEmptyLines: true, 
+                    complete: res => { 
+                        const rawData = res.data;
+                        let headerRowIdx = -1;
+
+                        // 往下掃描尋找包含 BRAND 和 PIC 的那一列，作為真正的 Header
+                        for (let i = 0; i < rawData.length; i++) {
+                            const rowStr = rawData[i].join('').toUpperCase();
+                            if (rowStr.includes('BRAND') && rowStr.includes('PIC')) {
+                                headerRowIdx = i;
+                                break;
+                            }
+                        }
+
+                        if (headerRowIdx !== -1) {
+                            headersS4 = rawData[headerRowIdx].map(h => h ? h.trim() : "");
+                            dataS4 = [];
+                            // 將標題以下的資料轉為物件陣列
+                            for (let i = headerRowIdx + 1; i < rawData.length; i++) {
+                                let obj = {};
+                                headersS4.forEach((h, colIdx) => {
+                                    if (h) obj[h] = rawData[i][colIdx] || "";
+                                });
+                                dataS4.push(obj);
+                            }
+                        } else {
+                            headersS4 = []; dataS4 = [];
+                        }
+                        
+                        // 智慧處理 CSV 中合併儲存格產生的空白資料 (以名字作關聯判斷向下填補)
+                        const getBaseName = (pic) => pic.includes('-') ? pic.split('-')[1].trim() : pic.trim();
+                        const picCol = headersS4.find(h => h.trim().toUpperCase() === 'PIC');
+                        
+                        if (picCol) {
+                            for (let col of headersS4) {
+                                if (col.toUpperCase() === 'BRAND' || col.toUpperCase() === 'PIC') continue;
+                                let lastVal = "";
+                                let lastBaseName = "";
+                                for (let i = 0; i < dataS4.length; i++) {
+                                    const currentPic = dataS4[i][picCol] || "";
+                                    const currentBaseName = getBaseName(currentPic);
+                                    
+                                    // 若基礎名字相同且當前儲存格為空，則向下填補 (例如：33/F - Mia 填補到 35/F - Mia)
+                                    if (i > 0 && currentBaseName === lastBaseName && (!dataS4[i][col] || dataS4[i][col].trim() === "")) {
+                                        dataS4[i][col] = lastVal;
+                                    } else {
+                                        lastVal = dataS4[i][col] || "";
+                                        lastBaseName = currentBaseName;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        s4L = true; checkDone();
+                } });
+
             } catch (e) { console.error(e); document.getElementById('loadingStatus')?.classList.add('hidden'); }
         }
 
@@ -957,7 +1227,16 @@
                 c.t++; const n = i[headersS1[S1_IDX.NAME]], rjnj = (i[headersS1[S1_IDX.RJNJ]]||"").toUpperCase(), dV = (i[headersS1[S1_IDX.LEAD_DATE]]||"").trim(), obV = (i[headersS1[S1_IDX.ONBOARD_DATE]]||"").trim();
                 const st = (i[headersS1[22]]||"-"), z = (i[headersS1[25]]||"PENDING");
                 if (z.toUpperCase().includes('ONBOARD')) c.j++; else if (z.toUpperCase().includes('WITHDRAW') || st.toUpperCase().includes('WITHDRAW')) c.d++; else c.w++;
-                const tr = `<tr><td class="text-left font-black text-base md:text-xl text-slate-900 px-6">${n}</td><td class="border-r border-blue-50 text-slate-800 text-sm px-4">${dV}</td><td class="border-r border-blue-50 text-slate-800 text-sm px-4">${st}</td><td class="border-r border-blue-50 text-slate-900 text-sm font-black px-4">${obV}</td><td class="text-center"><span class="px-3 md:px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm ${getZColumnClass(z)}">${z}</span></td></tr>`;
+                const tr = `
+                    <tr>
+                        <td class="text-left font-black text-base md:text-xl text-slate-900 px-6">${n}</td>
+                        <td class="border-r border-blue-50 text-slate-800 text-sm px-4">${dV}</td>
+                        <td class="border-r border-blue-50 text-slate-800 text-sm px-4">${st}</td>
+                        <td class="border-r border-blue-50 text-slate-900 text-sm font-black px-4">${obV}</td>
+                        <td class="text-center">
+                            <span class="px-3 md:px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm ${getZColumnClass(z)}">${z}</span>
+                        </td>
+                    </tr>`;
                 rjnj.includes('RJ') ? rbRJ.innerHTML += tr : rbNJ.innerHTML += tr;
             });
             const tc = document.getElementById('totalCount'), jc = document.getElementById('joinedCount'), wc = document.getElementById('withdrawCount'), pc = document.getElementById('pendingCount');
@@ -969,7 +1248,16 @@
             const rb = document.getElementById('sheet2TableBody'); if(!rb) return; rb.innerHTML = '';
             list.sort((a, b) => (a[headersS2[S2_IDX.BRAND]]||"").trim().localeCompare((b[headersS2[S2_IDX.BRAND]]||"").trim())).forEach(i => {
                 let o = parseFloat((i[headersS2[S2_IDX.OFFER]]||"0").replace(/,/g,'')), g = parseFloat((i[headersS2[S2_IDX.GAP]]||"0").replace(/,/g,'')), njo = parseFloat((i[headersS2[S2_IDX.NJ_OFFER]]||"0").replace(/,/g,''));
-                rb.innerHTML += `<tr class="hover:bg-sky-50 transition font-bold text-center"><td class="text-left border-r border-sky-50 px-6">${i[headersS2[S2_IDX.NAME]]}</td><td class="border-r border-sky-50 px-4">${(parseFloat(i[headersS2[9]])||0) + (parseFloat(i[headersS2[10]])||0)}</td><td class="border-r border-sky-50 px-4">${o}</td><td class="border-r border-sky-50 px-4">${i[headersS2[S2_IDX.SHOULD]]}</td><td class="border-r border-sky-50 px-4">${i[headersS2[S2_IDX.ONBOARD]]}</td><td class="border-r border-blue-50 font-black ${g<0?'bg-rose-100 text-rose-900':''} text-2xl px-4">${g}</td><td class="px-4">${njo}</td></tr>`;
+                rb.innerHTML += `
+                    <tr class="hover:bg-sky-50 transition font-bold text-center">
+                        <td class="text-left border-r border-sky-50 px-6">${i[headersS2[S2_IDX.NAME]]}</td>
+                        <td class="border-r border-sky-50 px-4">${(parseFloat(i[headersS2[9]])||0) + (parseFloat(i[headersS2[10]])||0)}</td>
+                        <td class="border-r border-sky-50 px-4">${o}</td>
+                        <td class="border-r border-sky-50 px-4">${i[headersS2[S2_IDX.SHOULD]]}</td>
+                        <td class="border-r border-sky-50 px-4">${i[headersS2[S2_IDX.ONBOARD]]}</td>
+                        <td class="border-r border-blue-50 font-black ${g<0?'bg-rose-100 text-rose-900':''} text-2xl px-4">${g}</td>
+                        <td class="px-4">${njo}</td>
+                    </tr>`;
             });
             const s2Area = document.getElementById('resultAreaSheet2'); if(s2Area) s2Area.classList.toggle('hidden', list.length === 0);
         }
@@ -1000,7 +1288,24 @@
             const container = document.getElementById('inactiveBrandContainer'); if(!container) return; container.innerHTML = '';
             ['DERMES', 'ELYZE', 'REENEX'].forEach(bName => {
                 const inact = dataS2.filter(i => (i[headersS2[S2_IDX.BRAND]]||"").toUpperCase() === bName && !i[headersS2[S2_IDX.NAME]].toUpperCase().includes("TOTAL") && !['HIPO E1','CM','DM'].includes((i[headersS2[S2_IDX.POS]]||"").toUpperCase())).filter(i => { const d = lMap.get((i[headersS2[S2_IDX.STAFF_ID]]||"").trim()); return !d || d < cut; });
-                if (inact.length > 0) container.innerHTML += `<div class="space-y-4"><h3 class="text-lg font-black text-slate-800 flex items-center bg-white/40 px-4 py-2 rounded-xl w-fit border border-white text-left"><span class="w-3 h-3 bg-rose-500 rounded-full mr-3"></span>${bName} <span class="ml-3 text-rose-600 font-cyber text-sm">Total: ${inact.length}</span></h3><div class="cyber-card overflow-hidden"><div class="overflow-x-auto custom-scrollbar"><table class="w-full border-collapse text-center"><thead class="bg-rose-50/50 border-b-2 border-rose-100 text-rose-950 font-black text-sm"><tr><th class="text-left px-6">PIC</th><th class="text-left px-6">姓名 (Name)</th><th class="text-left px-6">職位</th><th class="px-4">最後日期</th><th class="px-4">距離</th></tr></thead><tbody class="divide-y divide-slate-100 font-bold text-lg">${inact.map(i => { const d = lMap.get((i[headersS2[S2_IDX.STAFF_ID]]||"").trim()); return `<tr><td class="text-slate-600 text-left border-r border-rose-50 px-6">${i[headersS2[S2_IDX.PIC]]||"-"}</td><td class="text-slate-900 font-black text-left border-r border-rose-50 px-6">${i[headersS2[S2_IDX.NAME]]||"-"}</td><td class="text-slate-600 text-left border-r border-rose-50 italic text-sm px-6">${i[headersS2[S2_IDX.POS]]||"-"}</td><td class="border-r border-rose-50 px-4">${d ? d.toLocaleDateString('zh-HK') : "-"}</td><td class="text-rose-700 font-black px-4">${d ? Math.floor((new Date()-d)/(1000*60*60*24))+" 天前" : "從無記錄"}</td></tr>`; }).join('')}</tbody></table></div></div></div>`;
+                if (inact.length > 0) container.innerHTML += `
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-black text-slate-800 flex items-center bg-white/40 px-4 py-2 rounded-xl w-fit border border-white text-left">
+                            <span class="w-3 h-3 bg-rose-500 rounded-full mr-3"></span>${bName} <span class="ml-3 text-rose-600 font-cyber text-sm">Total: ${inact.length}</span>
+                        </h3>
+                        <div class="cyber-card overflow-hidden">
+                            <div class="overflow-x-auto custom-scrollbar">
+                                <table class="w-full border-collapse text-center">
+                                    <thead class="bg-rose-50/50 border-b-2 border-rose-100 text-rose-950 font-black text-sm">
+                                        <tr><th class="text-left px-6">PIC</th><th class="text-left px-6">姓名 (Name)</th><th class="text-left px-6">職位</th><th class="px-4">最後日期</th><th class="px-4">距離</th></tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 font-bold text-lg">
+                                        ${inact.map(i => { const d = lMap.get((i[headersS2[S2_IDX.STAFF_ID]]||"").trim()); return `<tr><td class="text-slate-600 text-left border-r border-rose-50 px-6">${i[headersS2[S2_IDX.PIC]]||"-"}</td><td class="text-slate-900 font-black text-left border-r border-rose-50 px-6">${i[headersS2[S2_IDX.NAME]]||"-"}</td><td class="text-slate-600 text-left border-r border-rose-50 italic text-sm px-6">${i[headersS2[S2_IDX.POS]]||"-"}</td><td class="border-r border-rose-50 px-4">${d ? d.toLocaleDateString('zh-HK') : "-"}</td><td class="text-rose-700 font-black px-4">${d ? Math.floor((new Date()-d)/(1000*60*60*24))+" 天前" : "從無記錄"}</td></tr>`; }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>`;
             });
             const it = document.getElementById('inactiveTitleSpan'); if(it) it.innerText = days === 14 ? "最近 2 星期無推薦" : "最近 1 個月無推薦"; document.getElementById('inactiveResultArea')?.classList.remove('hidden');
         }
