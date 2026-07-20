@@ -267,21 +267,42 @@
                 </div>
             </div>
             <div id="brandPieSection" class="hidden glass-card p-6 md:p-7">
-                <div class="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
-                    <div class="space-y-3">
-                        <div class="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-slate-600">
-                            All Brand Pie Chart
+                <div class="grid gap-8 xl:grid-cols-2">
+                    <div class="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
+                        <div class="space-y-3">
+                            <div class="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-slate-600">
+                                All Brand Pie Chart
+                            </div>
+                            <h3 class="text-2xl font-black text-slate-900">全部品牌返工人數比例</h3>
+                            <p id="brandPieMeta" class="text-sm font-bold text-slate-500"></p>
+                            <div id="brandPieLegend" class="grid gap-3 md:grid-cols-3"></div>
                         </div>
-                        <h3 class="text-2xl font-black text-slate-900">全部品牌返工人數比例</h3>
-                        <p id="brandPieMeta" class="text-sm font-bold text-slate-500"></p>
-                        <div id="brandPieLegend" class="grid gap-3 md:grid-cols-3"></div>
+                        <div class="mx-auto xl:mx-0">
+                            <div id="brandPieChart" class="pie-wrap">
+                                <div class="pie-center">
+                                    <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Total</div>
+                                    <div id="brandPieTotal" class="mt-2 text-4xl font-black data-font text-slate-900">0</div>
+                                    <div class="mt-2 text-sm font-bold text-slate-500">On Board Staff</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mx-auto xl:mx-0">
-                        <div id="brandPieChart" class="pie-wrap">
-                            <div class="pie-center">
-                                <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Total</div>
-                                <div id="brandPieTotal" class="mt-2 text-4xl font-black data-font text-slate-900">0</div>
-                                <div class="mt-2 text-sm font-bold text-slate-500">On Board Staff</div>
+                    <div class="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
+                        <div class="space-y-3">
+                            <div class="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-slate-600">
+                                All Brand Bucket Pie
+                            </div>
+                            <h3 class="text-2xl font-black text-slate-900">全部品牌離職分類比例</h3>
+                            <p id="bucketPieMeta" class="text-sm font-bold text-slate-500"></p>
+                            <div id="bucketPieLegend" class="grid gap-3 md:grid-cols-2"></div>
+                        </div>
+                        <div class="mx-auto xl:mx-0">
+                            <div id="bucketPieChart" class="pie-wrap">
+                                <div class="pie-center">
+                                    <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Left</div>
+                                    <div id="bucketPieTotal" class="mt-2 text-4xl font-black data-font text-slate-900">0</div>
+                                    <div class="mt-2 text-sm font-bold text-slate-500">Bucket Staff</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -364,6 +385,13 @@
             DERMES: '#0f766e',
             ELYZE: '#f97316',
             REENEX: '#2563eb'
+        };
+        const BUCKET_COLORS = {
+            b1: '#fb7185',
+            b2: '#f97316',
+            b3: '#fbbf24',
+            b4: '#14b8a6',
+            b5: '#2563eb'
         };
 
         let allRecords = [];
@@ -607,6 +635,61 @@
             section.classList.remove('hidden');
         }
 
+        function renderBucketPieChart() {
+            const records = getFilteredRecords().filter(record => record.termDate);
+            const total = records.length;
+            const pieChart = document.getElementById('bucketPieChart');
+            const pieLegend = document.getElementById('bucketPieLegend');
+            const pieMeta = document.getElementById('bucketPieMeta');
+            const pieTotal = document.getElementById('bucketPieTotal');
+
+            pieTotal.textContent = total;
+            pieMeta.textContent = `${formatMonth(selectedMonth)} 篩選下，全部品牌離職 category 佔比。`;
+
+            if (!total) {
+                pieChart.style.background = 'conic-gradient(#e2e8f0 0deg 360deg)';
+                pieLegend.innerHTML = `
+                    <div class="rounded-2xl bg-slate-50 px-4 py-4 text-sm font-black text-slate-400 md:col-span-2">
+                        目前篩選下未有已離職資料。
+                    </div>
+                `;
+                return;
+            }
+
+            const entries = BUCKETS.map(bucket => {
+                const count = records.filter(record => record.bucketId === bucket.id).length;
+                return {
+                    id: bucket.id,
+                    label: bucket.label,
+                    count,
+                    percent: count ? Math.round((count / total) * 100) : 0,
+                    color: BUCKET_COLORS[bucket.id] || '#94a3b8'
+                };
+            }).filter(entry => entry.count > 0);
+
+            let currentDeg = 0;
+            const gradientParts = entries.map(entry => {
+                const start = currentDeg;
+                const deg = (entry.count / total) * 360;
+                currentDeg += deg;
+                return `${entry.color} ${start}deg ${currentDeg}deg`;
+            });
+
+            pieChart.style.background = `conic-gradient(${gradientParts.join(', ')})`;
+            pieLegend.innerHTML = entries.map(entry => `
+                <div class="rounded-2xl bg-white/80 px-4 py-4 ring-1 ring-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="legend-dot" style="background:${entry.color}"></span>
+                        <div class="text-sm font-black text-slate-900">${entry.label}</div>
+                    </div>
+                    <div class="mt-3 flex items-end justify-between">
+                        <div class="text-3xl font-black data-font text-slate-900">${entry.count}</div>
+                        <div class="text-sm font-black text-slate-500">${entry.percent}%</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         function renderBrandCards() {
             const baseRecords = selectedMonth === 'ALL'
                 ? getFilteredRecords()
@@ -767,6 +850,7 @@
             renderBrandFilters();
             renderSummaryCards();
             renderBrandPieChart();
+            renderBucketPieChart();
             renderBrandCards();
             renderOverviewTable();
             renderDetailTable();
