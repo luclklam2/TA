@@ -116,6 +116,42 @@
             display: block;
         }
 
+        .pie-wrap {
+            width: 220px;
+            height: 220px;
+            border-radius: 9999px;
+            position: relative;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7), 0 20px 40px -26px rgba(15, 35, 65, 0.42);
+        }
+
+        .pie-wrap::after {
+            content: "";
+            position: absolute;
+            inset: 34px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.85);
+        }
+
+        .pie-center {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 9999px;
+            display: inline-block;
+            flex: 0 0 auto;
+        }
+
         .segment-b1 { background: #fb7185; }
         .segment-b2 { background: #f97316; }
         .segment-b3 { background: #fbbf24; }
@@ -230,6 +266,27 @@
                     <p class="mt-2 text-sm font-bold text-slate-500">先睇返工人數，再睇每個品牌已離職個案留任分佈。</p>
                 </div>
             </div>
+            <div id="brandPieSection" class="hidden glass-card p-6 md:p-7">
+                <div class="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
+                    <div class="space-y-3">
+                        <div class="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-slate-600">
+                            All Brand Pie Chart
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900">全部品牌返工人數比例</h3>
+                        <p id="brandPieMeta" class="text-sm font-bold text-slate-500"></p>
+                        <div id="brandPieLegend" class="grid gap-3 md:grid-cols-3"></div>
+                    </div>
+                    <div class="mx-auto xl:mx-0">
+                        <div id="brandPieChart" class="pie-wrap">
+                            <div class="pie-center">
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Total</div>
+                                <div id="brandPieTotal" class="mt-2 text-4xl font-black data-font text-slate-900">0</div>
+                                <div class="mt-2 text-sm font-bold text-slate-500">On Board Staff</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div id="brandCards" class="grid grid-cols-1 gap-4 xl:grid-cols-3"></div>
         </section>
 
@@ -303,6 +360,11 @@
             { id: 'b4', label: '31-90日', max: 90, chip: 'bg-teal-100 text-teal-700', segment: 'segment-b4' },
             { id: 'b5', label: '91+日', max: Number.POSITIVE_INFINITY, chip: 'bg-blue-100 text-blue-700', segment: 'segment-b5' }
         ];
+        const BRAND_COLORS = {
+            DERMES: '#0f766e',
+            ELYZE: '#f97316',
+            REENEX: '#2563eb'
+        };
 
         let allRecords = [];
         let monthKeys = [];
@@ -482,6 +544,69 @@
             `).join('');
         }
 
+        function renderBrandPieChart() {
+            const section = document.getElementById('brandPieSection');
+            if (selectedBrand !== 'ALL') {
+                section.classList.add('hidden');
+                return;
+            }
+
+            const records = getFilteredRecords();
+            const total = records.length;
+            const pieChart = document.getElementById('brandPieChart');
+            const pieLegend = document.getElementById('brandPieLegend');
+            const pieMeta = document.getElementById('brandPieMeta');
+            const pieTotal = document.getElementById('brandPieTotal');
+
+            pieTotal.textContent = total;
+            pieMeta.textContent = `${formatMonth(selectedMonth)} 篩選下，各品牌返工人數佔比。`;
+
+            if (!total) {
+                section.classList.remove('hidden');
+                pieChart.style.background = 'conic-gradient(#e2e8f0 0deg 360deg)';
+                pieLegend.innerHTML = `
+                    <div class="rounded-2xl bg-slate-50 px-4 py-4 text-sm font-black text-slate-400">
+                        目前篩選下未有資料。
+                    </div>
+                `;
+                return;
+            }
+
+            const entries = brands.map(brand => {
+                const count = records.filter(record => record.brand === brand).length;
+                return {
+                    brand,
+                    count,
+                    percent: count ? Math.round((count / total) * 100) : 0,
+                    color: BRAND_COLORS[brand] || '#94a3b8'
+                };
+            }).filter(entry => entry.count > 0);
+
+            let currentDeg = 0;
+            const gradientParts = entries.map(entry => {
+                const start = currentDeg;
+                const deg = (entry.count / total) * 360;
+                currentDeg += deg;
+                return `${entry.color} ${start}deg ${currentDeg}deg`;
+            });
+
+            pieChart.style.background = `conic-gradient(${gradientParts.join(', ')})`;
+            pieLegend.innerHTML = entries.map(entry => `
+                <div class="rounded-2xl bg-white/80 px-4 py-4 ring-1 ring-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="legend-dot" style="background:${entry.color}"></span>
+                        <div class="text-sm font-black text-slate-900">${entry.brand}</div>
+                    </div>
+                    <div class="mt-3 flex items-end justify-between">
+                        <div class="text-3xl font-black data-font text-slate-900">${entry.count}</div>
+                        <div class="text-sm font-black text-slate-500">${entry.percent}%</div>
+                    </div>
+                </div>
+            `).join('');
+
+            section.classList.remove('hidden');
+        }
+
         function renderBrandCards() {
             const baseRecords = selectedMonth === 'ALL'
                 ? getFilteredRecords()
@@ -641,6 +766,7 @@
             renderMonthFilters();
             renderBrandFilters();
             renderSummaryCards();
+            renderBrandPieChart();
             renderBrandCards();
             renderOverviewTable();
             renderDetailTable();
