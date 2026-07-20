@@ -357,7 +357,7 @@
             <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                 <div>
                     <h2 class="text-2xl font-black text-slate-900">Monthly Review</h2>
-                    <p class="mt-2 text-sm font-bold text-slate-500">用線圖睇返每個月份走勢；全部品牌時按 brand 分線，單一品牌時會改做 Total / Active / Left 三條線。</p>
+                    <p class="mt-2 text-sm font-bold text-slate-500">用線圖睇返每個月份走勢；全部品牌時拆做各 brand 的 IN / OUT，單一品牌時會改做 IN / ACTIVE / OUT 三條線。</p>
                 </div>
                 <div id="overviewMeta" class="text-sm font-black text-slate-500"></div>
             </div>
@@ -427,12 +427,12 @@
             b5: '#2563eb'
         };
         const OVERVIEW_SERIES_COLORS = {
-            DERMES: '#0f766e',
-            ELYZE: '#f97316',
-            REENEX: '#2563eb',
-            total: '#0f172a',
+            DERMES: { in: '#0f766e', out: '#2dd4bf' },
+            ELYZE: { in: '#f97316', out: '#fdba74' },
+            REENEX: { in: '#2563eb', out: '#93c5fd' },
+            in: '#0f172a',
             active: '#0f766e',
-            left: '#ea580c'
+            out: '#ea580c'
         };
 
         let allRecords = [];
@@ -872,31 +872,48 @@
             const months = getSelectedMonthKeys();
 
             if (selectedBrand === 'ALL') {
-                return brands.map(brand => ({
-                    key: brand,
-                    label: brand,
-                    color: OVERVIEW_SERIES_COLORS[brand] || '#94a3b8',
-                    values: months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === brand)?.summary.total || 0)
-                })).filter(series => series.values.some(value => value > 0));
+                return brands.flatMap(brand => {
+                    const palette = OVERVIEW_SERIES_COLORS[brand] || { in: '#64748b', out: '#cbd5e1' };
+                    const monthValues = months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === brand)?.summary || null);
+                    return [
+                        {
+                            key: `${brand}-in`,
+                            label: `${brand} IN`,
+                            color: palette.in,
+                            dash: '',
+                            values: monthValues.map(summary => summary?.total || 0)
+                        },
+                        {
+                            key: `${brand}-out`,
+                            label: `${brand} OUT`,
+                            color: palette.out,
+                            dash: '8 8',
+                            values: monthValues.map(summary => summary?.left || 0)
+                        }
+                    ];
+                }).filter(series => series.values.some(value => value > 0));
             }
 
             return [
                 {
-                    key: 'total',
-                    label: 'Total',
-                    color: OVERVIEW_SERIES_COLORS.total,
+                    key: 'in',
+                    label: 'IN',
+                    color: OVERVIEW_SERIES_COLORS.in,
+                    dash: '',
                     values: months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === selectedBrand)?.summary.total || 0)
                 },
                 {
                     key: 'active',
-                    label: 'Active',
+                    label: 'ACTIVE',
                     color: OVERVIEW_SERIES_COLORS.active,
+                    dash: '',
                     values: months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === selectedBrand)?.summary.active || 0)
                 },
                 {
-                    key: 'left',
-                    label: 'Left',
-                    color: OVERVIEW_SERIES_COLORS.left,
+                    key: 'out',
+                    label: 'OUT',
+                    color: OVERVIEW_SERIES_COLORS.out,
+                    dash: '8 8',
                     values: months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === selectedBrand)?.summary.left || 0)
                 }
             ];
@@ -926,7 +943,7 @@
                 return `
                     <div class="chart-legend-button">
                         <div class="flex items-center gap-3">
-                            <span class="chart-legend-line" style="background:${item.color}"></span>
+                            <span class="chart-legend-line" style="background:${item.color}; opacity:${item.dash ? '0.8' : '1'}"></span>
                             <div class="text-sm font-black text-slate-900">${item.label}</div>
                         </div>
                         <div class="mt-3 flex items-end justify-between">
@@ -948,6 +965,7 @@
             const xStep = months.length > 1 ? innerWidth / (months.length - 1) : 0;
             const yForValue = value => padding.top + innerHeight - ((value / yMax) * innerHeight);
             const xForIndex = index => padding.left + (months.length > 1 ? index * xStep : innerWidth / 2);
+            const denseMode = series.length > 4;
 
             const gridLines = Array.from({ length: ySteps + 1 }, (_, index) => {
                 const value = Math.round((yMax / ySteps) * index);
@@ -965,12 +983,21 @@
             const seriesMarkup = series.map(item => {
                 const points = item.values.map((value, index) => `${xForIndex(index)},${yForValue(value)}`).join(' ');
                 const dots = item.values.map((value, index) => `
-                    <circle cx="${xForIndex(index)}" cy="${yForValue(value)}" r="4.5" fill="${item.color}" />
-                    <text x="${xForIndex(index)}" y="${yForValue(value) - 12}" text-anchor="middle" font-size="11" font-weight="800" fill="${item.color}">${value}</text>
+                    <circle cx="${xForIndex(index)}" cy="${yForValue(value)}" r="${denseMode ? '3.8' : '4.5'}" fill="${item.color}" />
                 `).join('');
+                const labels = denseMode
+                    ? (() => {
+                        const lastIndex = item.values.length - 1;
+                        const lastValue = item.values[lastIndex] ?? 0;
+                        return `<text x="${xForIndex(lastIndex)}" y="${yForValue(lastValue) - 12}" text-anchor="middle" font-size="11" font-weight="800" fill="${item.color}">${lastValue}</text>`;
+                    })()
+                    : item.values.map((value, index) => `
+                        <text x="${xForIndex(index)}" y="${yForValue(value) - 12}" text-anchor="middle" font-size="11" font-weight="800" fill="${item.color}">${value}</text>
+                    `).join('');
                 return `
-                    <polyline fill="none" stroke="${item.color}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="${points}" />
+                    <polyline fill="none" stroke="${item.color}" stroke-width="${denseMode ? '3.2' : '4'}" stroke-dasharray="${item.dash || ''}" stroke-linecap="round" stroke-linejoin="round" points="${points}" />
                     ${dots}
+                    ${labels}
                 `;
             }).join('');
 
