@@ -170,6 +170,30 @@
             background: linear-gradient(135deg, rgba(240, 253, 250, 0.98), rgba(236, 253, 245, 0.96));
         }
 
+        .chart-shell {
+            border-radius: 1.5rem;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,250,252,0.88));
+            padding: 1.25rem;
+        }
+
+        .chart-legend-button {
+            width: 100%;
+            text-align: left;
+            border-radius: 1rem;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            background: rgba(255, 255, 255, 0.82);
+            padding: 0.95rem 1rem;
+        }
+
+        .chart-legend-line {
+            width: 30px;
+            height: 4px;
+            border-radius: 9999px;
+            display: inline-block;
+            flex: 0 0 auto;
+        }
+
         .segment-b1 { background: #fb7185; }
         .segment-b2 { background: #f97316; }
         .segment-b3 { background: #fbbf24; }
@@ -332,30 +356,21 @@
         <section class="glass-card p-6 md:p-7">
             <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                 <div>
-                    <h2 class="text-2xl font-black text-slate-900">Monthly Overview</h2>
-                    <p class="mt-2 text-sm font-bold text-slate-500">每行係一個 月份 x Brand 組合，方便你一眼比對返工量、Still Active 同已離職分佈。</p>
+                    <h2 class="text-2xl font-black text-slate-900">Monthly Review</h2>
+                    <p class="mt-2 text-sm font-bold text-slate-500">用線圖睇返每個月份走勢；全部品牌時按 brand 分線，單一品牌時會改做 Total / Active / Left 三條線。</p>
                 </div>
                 <div id="overviewMeta" class="text-sm font-black text-slate-500"></div>
             </div>
-            <div class="table-shell mt-6 bg-white/70">
-                <table>
-                    <thead class="bg-slate-900 text-left text-xs font-black uppercase tracking-[0.15em] text-white">
-                        <tr>
-                            <th>Month</th>
-                            <th>Brand</th>
-                            <th>Total</th>
-                            <th>Active</th>
-                            <th>Left</th>
-                            <th>Avg Stay</th>
-                            <th>1-2日</th>
-                            <th>3-14日</th>
-                            <th>15-30日</th>
-                            <th>31-90日</th>
-                            <th>91+日</th>
-                        </tr>
-                    </thead>
-                    <tbody id="overviewBody" class="divide-y divide-slate-100 bg-white/70 text-sm font-bold text-slate-700"></tbody>
-                </table>
+            <div class="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)] mt-6">
+                <div id="overviewLegend" class="grid gap-3"></div>
+                <div class="chart-shell">
+                    <div id="overviewChartEmpty" class="hidden px-6 py-16 text-center text-sm font-black text-slate-400">
+                        目前篩選下未有月度資料。
+                    </div>
+                    <div class="overflow-x-auto">
+                        <div id="overviewChart" class="min-w-[720px]"></div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -410,6 +425,14 @@
             b3: '#fbbf24',
             b4: '#14b8a6',
             b5: '#2563eb'
+        };
+        const OVERVIEW_SERIES_COLORS = {
+            DERMES: '#0f766e',
+            ELYZE: '#f97316',
+            REENEX: '#2563eb',
+            total: '#0f172a',
+            active: '#0f766e',
+            left: '#ea580c'
         };
 
         let allRecords = [];
@@ -831,8 +854,7 @@
             }).join('');
         }
 
-        function renderOverviewTable() {
-            const body = document.getElementById('overviewBody');
+        function buildOverviewRows() {
             const rows = [];
             const sourceRecords = allRecords.filter(record => selectedBrand === 'ALL' || record.brand === selectedBrand);
 
@@ -843,34 +865,124 @@
                 });
             });
 
-            document.getElementById('overviewMeta').textContent = `${rows.length} rows`;
+            return rows;
+        }
 
-            if (!rows.length) {
-                body.innerHTML = `
-                    <tr>
-                        <td colspan="11" class="px-6 py-10 text-center text-sm font-black text-slate-400">
-                            未有符合篩選的月度資料
-                        </td>
-                    </tr>
-                `;
+        function getOverviewSeries(rows) {
+            const months = getSelectedMonthKeys();
+
+            if (selectedBrand === 'ALL') {
+                return brands.map(brand => ({
+                    key: brand,
+                    label: brand,
+                    color: OVERVIEW_SERIES_COLORS[brand] || '#94a3b8',
+                    values: months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === brand)?.summary.total || 0)
+                })).filter(series => series.values.some(value => value > 0));
+            }
+
+            return [
+                {
+                    key: 'total',
+                    label: 'Total',
+                    color: OVERVIEW_SERIES_COLORS.total,
+                    values: months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === selectedBrand)?.summary.total || 0)
+                },
+                {
+                    key: 'active',
+                    label: 'Active',
+                    color: OVERVIEW_SERIES_COLORS.active,
+                    values: months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === selectedBrand)?.summary.active || 0)
+                },
+                {
+                    key: 'left',
+                    label: 'Left',
+                    color: OVERVIEW_SERIES_COLORS.left,
+                    values: months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === selectedBrand)?.summary.left || 0)
+                }
+            ];
+        }
+
+        function renderOverviewTable() {
+            const rows = buildOverviewRows();
+            const legend = document.getElementById('overviewLegend');
+            const chart = document.getElementById('overviewChart');
+            const empty = document.getElementById('overviewChartEmpty');
+            const months = getSelectedMonthKeys();
+            const series = getOverviewSeries(rows);
+
+            document.getElementById('overviewMeta').textContent = `${months.length} months / ${series.length} lines`;
+
+            if (!rows.length || !series.length) {
+                legend.innerHTML = '';
+                chart.innerHTML = '';
+                empty.classList.remove('hidden');
                 return;
             }
 
-            body.innerHTML = rows.map((row, index) => `
-                <tr class="${index % 2 === 0 ? 'bg-white/80' : 'bg-slate-50/70'}">
-                    <td class="font-black text-slate-900">${formatMonth(row.monthKey)}</td>
-                    <td>${row.brand}</td>
-                    <td class="data-font">${row.summary.total}</td>
-                    <td class="data-font text-teal-700">${row.summary.active}</td>
-                    <td class="data-font text-orange-700">${row.summary.left}</td>
-                    <td class="data-font">${row.summary.avgStay}日</td>
-                    <td class="data-font">${row.summary.b1}</td>
-                    <td class="data-font">${row.summary.b2}</td>
-                    <td class="data-font">${row.summary.b3}</td>
-                    <td class="data-font">${row.summary.b4}</td>
-                    <td class="data-font">${row.summary.b5}</td>
-                </tr>
+            empty.classList.add('hidden');
+
+            legend.innerHTML = series.map(item => {
+                const lastValue = item.values[item.values.length - 1] ?? 0;
+                return `
+                    <div class="chart-legend-button">
+                        <div class="flex items-center gap-3">
+                            <span class="chart-legend-line" style="background:${item.color}"></span>
+                            <div class="text-sm font-black text-slate-900">${item.label}</div>
+                        </div>
+                        <div class="mt-3 flex items-end justify-between">
+                            <div class="text-3xl font-black data-font text-slate-900">${lastValue}</div>
+                            <div class="text-sm font-black text-slate-500">latest</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const width = Math.max(720, months.length * 120);
+            const height = 340;
+            const padding = { top: 20, right: 24, bottom: 52, left: 56 };
+            const innerWidth = width - padding.left - padding.right;
+            const innerHeight = height - padding.top - padding.bottom;
+            const maxValue = Math.max(1, ...series.flatMap(item => item.values));
+            const yMax = maxValue <= 5 ? 5 : Math.ceil(maxValue / 5) * 5;
+            const ySteps = 5;
+            const xStep = months.length > 1 ? innerWidth / (months.length - 1) : 0;
+            const yForValue = value => padding.top + innerHeight - ((value / yMax) * innerHeight);
+            const xForIndex = index => padding.left + (months.length > 1 ? index * xStep : innerWidth / 2);
+
+            const gridLines = Array.from({ length: ySteps + 1 }, (_, index) => {
+                const value = Math.round((yMax / ySteps) * index);
+                const y = yForValue(value);
+                return `
+                    <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(148,163,184,0.22)" stroke-width="1" />
+                    <text x="${padding.left - 12}" y="${y + 4}" text-anchor="end" font-size="11" font-weight="800" fill="#64748b">${value}</text>
+                `;
+            }).join('');
+
+            const xLabels = months.map((monthKey, index) => `
+                <text x="${xForIndex(index)}" y="${height - 18}" text-anchor="middle" font-size="12" font-weight="800" fill="#475569">${formatMonth(monthKey)}</text>
             `).join('');
+
+            const seriesMarkup = series.map(item => {
+                const points = item.values.map((value, index) => `${xForIndex(index)},${yForValue(value)}`).join(' ');
+                const dots = item.values.map((value, index) => `
+                    <circle cx="${xForIndex(index)}" cy="${yForValue(value)}" r="4.5" fill="${item.color}" />
+                    <text x="${xForIndex(index)}" y="${yForValue(value) - 12}" text-anchor="middle" font-size="11" font-weight="800" fill="${item.color}">${value}</text>
+                `).join('');
+                return `
+                    <polyline fill="none" stroke="${item.color}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="${points}" />
+                    ${dots}
+                `;
+            }).join('');
+
+            chart.innerHTML = `
+                <svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="Monthly review line chart">
+                    <rect x="0" y="0" width="${width}" height="${height}" rx="20" fill="transparent"></rect>
+                    ${gridLines}
+                    <line x1="${padding.left}" y1="${padding.top + innerHeight}" x2="${width - padding.right}" y2="${padding.top + innerHeight}" stroke="rgba(15,23,42,0.22)" stroke-width="1.5" />
+                    ${xLabels}
+                    ${seriesMarkup}
+                </svg>
+            `;
         }
 
         function renderDetailTable() {
