@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 Staff In/Out Study</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Space+Grotesk:wght@500;700&display=swap');
+
+        :root {
+            --ink: #10223d;
+            --muted: #5f6e82;
+            --paper: rgba(255, 255, 255, 0.88);
+            --brand: #0f766e;
+            --brand-soft: #ccfbf1;
+            --accent: #ea580c;
+            --accent-soft: #ffedd5;
+            --line: rgba(148, 163, 184, 0.28);
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(13, 148, 136, 0.18), transparent 28%),
+                radial-gradient(circle at top right, rgba(249, 115, 22, 0.18), transparent 24%),
+                linear-gradient(160deg, #f8fffd 0%, #eef6ff 46%, #fff7ed 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.35) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.35) 1px, transparent 1px);
+            background-size: 26px 26px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .glass-card {
+            background: var(--paper);
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            box-shadow: 0 18px 50px -26px rgba(15, 35, 65, 0.35);
+            backdrop-filter: blur(18px);
+            border-radius: 1.5rem;
+        }
+
+        .data-font {
+            font-family: 'Space Grotesk', sans-serif;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .filter-pill,
+        .brand-pill {
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            background: rgba(255, 255, 255, 0.78);
+            color: #42526a;
+            font-weight: 800;
+            border-radius: 9999px;
+            padding: 0.55rem 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .filter-pill:hover,
+        .brand-pill:hover {
+            transform: translateY(-1px);
+            border-color: rgba(15, 118, 110, 0.35);
+        }
+
+        .filter-pill.active,
+        .brand-pill.active {
+            background: linear-gradient(135deg, #0f766e, #0ea5a4);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 10px 26px -14px rgba(15, 118, 110, 0.78);
+        }
+
+        .bucket-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.45rem 0.7rem;
+            border-radius: 9999px;
+            font-size: 0.74rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 9999px;
+            padding: 0.35rem 0.7rem;
+            font-size: 0.72rem;
+            font-weight: 900;
+        }
+
+        .stack-bar {
+            display: flex;
+            width: 100%;
+            height: 14px;
+            border-radius: 9999px;
+            overflow: hidden;
+            background: rgba(226, 232, 240, 0.78);
+        }
+
+        .stack-bar span {
+            height: 100%;
+            display: block;
+        }
+
+        .segment-b1 { background: #fb7185; }
+        .segment-b2 { background: #f97316; }
+        .segment-b3 { background: #fbbf24; }
+        .segment-b4 { background: #14b8a6; }
+        .segment-b5 { background: #2563eb; }
+
+        .table-shell {
+            overflow-x: auto;
+            border-radius: 1.15rem;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            white-space: nowrap;
+            padding: 0.95rem 0.8rem;
+        }
+
+        .table-shell::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-shell::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.5);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="px-3 py-6 md:px-6 md:py-10">
+    <div class="max-w-7xl mx-auto space-y-8">
+        <header class="glass-card p-6 md:p-8">
+            <div class="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+                <div class="space-y-4">
+                    <div class="inline-flex items-center gap-2 rounded-full bg-teal-50 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-teal-800">
+                        2026 Staff In / Out Study
+                    </div>
+                    <div class="space-y-3">
+                        <h1 class="text-3xl font-black tracking-tight text-slate-900 md:text-5xl">
+                            按 Brand 睇返工後留任分佈
+                        </h1>
+                        <p class="max-w-3xl text-sm font-bold leading-7 text-slate-600 md:text-base">
+                            以 <span class="text-teal-700">Sheet6</span> 為資料來源，按月統計每個品牌有幾多人返工，再按返工日至 Term Date
+                            的留任天數分到不同 category；未有 Term Date 的個案會計到頁面載入當日。
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="./TA.html" class="inline-flex items-center rounded-full bg-slate-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/20 transition hover:-translate-y-0.5">
+                            返回主 Dashboard
+                        </a>
+                        <a href="https://docs.google.com/spreadsheets/d/1zCIR7C66000DR0ibzwG9p3u2iH0GSHRGLdY7C-zK38I/edit?gid=1779759258#gid=1779759258" target="_blank" rel="noreferrer" class="inline-flex items-center rounded-full bg-white px-5 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200 transition hover:-translate-y-0.5">
+                            開啟 Sheet6
+                        </a>
+                    </div>
+                </div>
+
+                <div class="grid min-w-[280px] gap-4 md:grid-cols-2 xl:w-[340px] xl:grid-cols-1">
+                    <div class="rounded-3xl bg-slate-900 px-5 py-5 text-white shadow-2xl shadow-slate-900/15">
+                        <div class="text-xs font-black uppercase tracking-[0.18em] text-white/65">Snapshot</div>
+                        <div id="asOfDate" class="mt-3 text-3xl font-black data-font">--/--/----</div>
+                        <div class="mt-2 text-sm font-bold text-white/75">活躍個案留任日數會計到呢個日期</div>
+                    </div>
+                    <button onclick="init()" class="rounded-3xl bg-gradient-to-br from-teal-500 to-cyan-500 px-5 py-5 text-left text-white shadow-2xl shadow-teal-500/25 transition hover:-translate-y-0.5">
+                        <div class="text-xs font-black uppercase tracking-[0.18em] text-white/70">Refresh</div>
+                        <div class="mt-3 text-2xl font-black">重新載入資料</div>
+                        <div id="refreshMeta" class="mt-2 text-sm font-bold text-white/80">等待載入中...</div>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <section id="loadingStatus" class="glass-card p-5 text-sm font-black text-slate-600">
+            正在讀取 Sheet6...
+        </section>
+
+        <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4" id="summaryCards"></section>
+
+        <section class="glass-card p-6 md:p-7">
+            <div class="flex flex-col gap-6">
+                <div class="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-900">篩選與口徑</h2>
+                        <p class="mt-2 text-sm font-bold text-slate-500">
+                            Category 口徑：1-2日 / 3-14日 / 15-30日 / 31-90日 / 91日以上
+                        </p>
+                    </div>
+                    <div class="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-black text-amber-900 ring-1 ring-amber-100">
+                        目前統計以返工日為月份歸屬，並按品牌 `p_dept` 分組。
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <div class="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Month</div>
+                        <div id="monthFilters" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div>
+                        <div class="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Brand</div>
+                        <div id="brandFilters" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900">Brand Snapshot</h2>
+                    <p class="mt-2 text-sm font-bold text-slate-500">先睇返工人數，再睇每個品牌留任分佈。</p>
+                </div>
+            </div>
+            <div id="brandCards" class="grid grid-cols-1 gap-4 xl:grid-cols-3"></div>
+        </section>
+
+        <section class="glass-card p-6 md:p-7">
+            <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900">Monthly Overview</h2>
+                    <p class="mt-2 text-sm font-bold text-slate-500">每行係一個 月份 x Brand 組合，方便你一眼比對返工量同留任分佈。</p>
+                </div>
+                <div id="overviewMeta" class="text-sm font-black text-slate-500"></div>
+            </div>
+            <div class="table-shell mt-6 bg-white/70">
+                <table>
+                    <thead class="bg-slate-900 text-left text-xs font-black uppercase tracking-[0.15em] text-white">
+                        <tr>
+                            <th>Month</th>
+                            <th>Brand</th>
+                            <th>Total</th>
+                            <th>Active</th>
+                            <th>Left</th>
+                            <th>Avg Stay</th>
+                            <th>1-2日</th>
+                            <th>3-14日</th>
+                            <th>15-30日</th>
+                            <th>31-90日</th>
+                            <th>91+日</th>
+                        </tr>
+                    </thead>
+                    <tbody id="overviewBody" class="divide-y divide-slate-100 bg-white/70 text-sm font-bold text-slate-700"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="glass-card p-6 md:p-7">
+            <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900">Selected Detail</h2>
+                    <p id="detailSummary" class="mt-2 text-sm font-bold text-slate-500"></p>
+                </div>
+                <div class="rounded-2xl bg-slate-100 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-slate-600">
+                    點人名可以再喺表內搵返 term / active 情況
+                </div>
+            </div>
+            <div class="table-shell mt-6 bg-white/70">
+                <table>
+                    <thead class="bg-teal-700 text-left text-xs font-black uppercase tracking-[0.15em] text-white">
+                        <tr>
+                            <th>Brand</th>
+                            <th>Name</th>
+                            <th>Job Date</th>
+                            <th>Term Date</th>
+                            <th>Status</th>
+                            <th>Stay Days</th>
+                            <th>Bucket</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailBody" class="divide-y divide-slate-100 bg-white/70 text-sm font-bold text-slate-700"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const SHEET_DOC_ID = '1zCIR7C66000DR0ibzwG9p3u2iH0GSHRGLdY7C-zK38I';
+        const SHEET_NAME = 'Sheet6';
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_DOC_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+        const BUCKETS = [
+            { id: 'b1', label: '1-2日', max: 2, chip: 'bg-rose-100 text-rose-700', segment: 'segment-b1' },
+            { id: 'b2', label: '3-14日', max: 14, chip: 'bg-orange-100 text-orange-700', segment: 'segment-b2' },
+            { id: 'b3', label: '15-30日', max: 30, chip: 'bg-amber-100 text-amber-700', segment: 'segment-b3' },
+            { id: 'b4', label: '31-90日', max: 90, chip: 'bg-teal-100 text-teal-700', segment: 'segment-b4' },
+            { id: 'b5', label: '91+日', max: Number.POSITIVE_INFINITY, chip: 'bg-blue-100 text-blue-700', segment: 'segment-b5' }
+        ];
+
+        let allRecords = [];
+        let monthKeys = [];
+        let brands = [];
+        let selectedMonth = 'ALL';
+        let selectedBrand = 'ALL';
+        let lastLoadedAt = null;
+
+        function parseDate(value) {
+            const cleaned = (value || '').trim().replace(/#/g, '');
+            if (!cleaned) return null;
+            const [dd, mm, yyyy] = cleaned.split('/');
+            if (!dd || !mm || !yyyy) return null;
+            const parsed = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function getAsOfDate() {
+            const now = new Date();
+            return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        }
+
+        function daysBetween(start, end) {
+            const s = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
+            const e = new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime();
+            return Math.max(0, Math.round((e - s) / 86400000));
+        }
+
+        function getBucketByDays(days) {
+            return BUCKETS.find(bucket => days <= bucket.max) || BUCKETS[BUCKETS.length - 1];
+        }
+
+        function formatDate(date) {
+            return date ? date.toLocaleDateString('en-GB') : '-';
+        }
+
+        function formatMonth(monthKey) {
+            if (!monthKey || monthKey === 'ALL') return '全年';
+            const [, month] = monthKey.split('-');
+            return `${Number(month)}月`;
+        }
+
+        function buildRecord(row) {
+            const jobDate = parseDate(row.p_jobdate);
+            if (!jobDate || jobDate.getFullYear() !== 2026) return null;
+
+            const termDate = parseDate(row.p_termdate);
+            const asOfDate = getAsOfDate();
+            const stayDays = daysBetween(jobDate, termDate || asOfDate);
+            const bucket = getBucketByDays(stayDays);
+            const brand = (row.p_dept || 'UNKNOWN').trim().toUpperCase();
+
+            return {
+                brand,
+                name: (row.p_name || row.p_cname || '').trim() || '-',
+                jobDate,
+                termDate,
+                status: termDate ? '已離職' : '仍在職',
+                stayDays,
+                bucketId: bucket.id,
+                bucketLabel: bucket.label,
+                monthKey: `${jobDate.getFullYear()}-${String(jobDate.getMonth() + 1).padStart(2, '0')}`
+            };
+        }
+
+        function getFilteredRecords() {
+            return allRecords.filter(record => {
+                const monthOk = selectedMonth === 'ALL' || record.monthKey === selectedMonth;
+                const brandOk = selectedBrand === 'ALL' || record.brand === selectedBrand;
+                return monthOk && brandOk;
+            });
+        }
+
+        function groupByBrand(records) {
+            return brands.map(brand => ({
+                brand,
+                records: records.filter(record => record.brand === brand)
+            })).filter(group => group.records.length > 0);
+        }
+
+        function summarize(records) {
+            const base = {
+                total: records.length,
+                active: 0,
+                left: 0,
+                stayTotal: 0
+            };
+
+            BUCKETS.forEach(bucket => {
+                base[bucket.id] = 0;
+            });
+
+            records.forEach(record => {
+                base.stayTotal += record.stayDays;
+                base[record.bucketId] += 1;
+                if (record.termDate) {
+                    base.left += 1;
+                } else {
+                    base.active += 1;
+                }
+            });
+
+            base.avgStay = base.total ? Math.round(base.stayTotal / base.total) : 0;
+            return base;
+        }
+
+        function renderMonthFilters() {
+            const container = document.getElementById('monthFilters');
+            container.innerHTML = '';
+
+            [{ key: 'ALL', label: '全年' }, ...monthKeys.map(key => ({ key, label: formatMonth(key) }))].forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedMonth === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => {
+                    selectedMonth = item.key;
+                    renderAll();
+                };
+                container.appendChild(button);
+            });
+        }
+
+        function renderBrandFilters() {
+            const container = document.getElementById('brandFilters');
+            container.innerHTML = '';
+
+            [{ key: 'ALL', label: '全部品牌' }, ...brands.map(brand => ({ key: brand, label: brand }))].forEach(item => {
+                const button = document.createElement('button');
+                button.className = `brand-pill ${selectedBrand === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => {
+                    selectedBrand = item.key;
+                    renderAll();
+                };
+                container.appendChild(button);
+            });
+        }
+
+        function renderSummaryCards() {
+            const records = getFilteredRecords();
+            const summary = summarize(records);
+            const cards = [
+                {
+                    title: '返工人數',
+                    value: summary.total,
+                    tone: 'from-slate-900 to-slate-700',
+                    note: `${formatMonth(selectedMonth)} / ${selectedBrand === 'ALL' ? '全部品牌' : selectedBrand}`
+                },
+                {
+                    title: '仍在職',
+                    value: summary.active,
+                    tone: 'from-teal-600 to-cyan-500',
+                    note: summary.total ? `${Math.round((summary.active / summary.total) * 100)}% of selected` : '0% of selected'
+                },
+                {
+                    title: '已離職',
+                    value: summary.left,
+                    tone: 'from-orange-500 to-amber-500',
+                    note: summary.total ? `${Math.round((summary.left / summary.total) * 100)}% of selected` : '0% of selected'
+                },
+                {
+                    title: '平均留任日數',
+                    value: `${summary.avgStay}日`,
+                    tone: 'from-blue-600 to-indigo-500',
+                    note: '以返工日至 term / 今日計算'
+                }
+            ];
+
+            document.getElementById('summaryCards').innerHTML = cards.map(card => `
+                <div class="glass-card overflow-hidden">
+                    <div class="bg-gradient-to-br ${card.tone} px-5 py-5 text-white">
+                        <div class="text-xs font-black uppercase tracking-[0.16em] text-white/70">${card.title}</div>
+                        <div class="mt-3 text-4xl font-black data-font">${card.value}</div>
+                        <div class="mt-2 text-sm font-bold text-white/80">${card.note}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderBrandCards() {
+            const baseRecords = selectedMonth === 'ALL'
+                ? getFilteredRecords()
+                : allRecords.filter(record => record.monthKey === selectedMonth && (selectedBrand === 'ALL' || record.brand === selectedBrand));
+            const groups = groupByBrand(baseRecords);
+            const container = document.getElementById('brandCards');
+
+            if (!groups.length) {
+                container.innerHTML = `
+                    <div class="glass-card col-span-full p-8 text-center text-sm font-black text-slate-500">
+                        目前篩選下未有資料。
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = groups.map(group => {
+                const summary = summarize(group.records);
+                const segments = BUCKETS.map(bucket => {
+                    const value = summary[bucket.id];
+                    const width = summary.total ? (value / summary.total) * 100 : 0;
+                    return width > 0 ? `<span class="${bucket.segment}" style="width:${width}%"></span>` : '';
+                }).join('');
+
+                const chips = BUCKETS.map(bucket => `
+                    <span class="bucket-chip ${bucket.chip}">
+                        ${bucket.label}
+                        <span class="data-font">${summary[bucket.id]}</span>
+                    </span>
+                `).join('');
+
+                return `
+                    <button class="glass-card p-5 text-left transition hover:-translate-y-0.5" onclick="setBrandFromCard('${group.brand}')">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Brand</div>
+                                <div class="mt-2 text-2xl font-black text-slate-900">${group.brand}</div>
+                            </div>
+                            <div class="rounded-2xl bg-slate-900 px-4 py-3 text-right text-white">
+                                <div class="text-xs font-black uppercase tracking-[0.15em] text-white/65">Total</div>
+                                <div class="text-3xl font-black data-font">${summary.total}</div>
+                            </div>
+                        </div>
+                        <div class="mt-5 grid grid-cols-3 gap-3">
+                            <div class="rounded-2xl bg-teal-50 px-4 py-3">
+                                <div class="text-xs font-black uppercase tracking-[0.14em] text-teal-700">Active</div>
+                                <div class="mt-2 text-2xl font-black text-teal-800 data-font">${summary.active}</div>
+                            </div>
+                            <div class="rounded-2xl bg-orange-50 px-4 py-3">
+                                <div class="text-xs font-black uppercase tracking-[0.14em] text-orange-700">Left</div>
+                                <div class="mt-2 text-2xl font-black text-orange-800 data-font">${summary.left}</div>
+                            </div>
+                            <div class="rounded-2xl bg-slate-100 px-4 py-3">
+                                <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Avg Stay</div>
+                                <div class="mt-2 text-2xl font-black text-slate-800 data-font">${summary.avgStay}</div>
+                            </div>
+                        </div>
+                        <div class="mt-5">
+                            <div class="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">Distribution</div>
+                            <div class="stack-bar">${segments}</div>
+                        </div>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            ${chips}
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderOverviewTable() {
+            const body = document.getElementById('overviewBody');
+            const rows = [];
+            const sourceRecords = allRecords.filter(record => selectedBrand === 'ALL' || record.brand === selectedBrand);
+
+            monthKeys.forEach(monthKey => {
+                const monthRecords = sourceRecords.filter(record => record.monthKey === monthKey);
+                groupByBrand(monthRecords).forEach(group => {
+                    rows.push({ monthKey, brand: group.brand, summary: summarize(group.records) });
+                });
+            });
+
+            document.getElementById('overviewMeta').textContent = `${rows.length} rows`;
+
+            if (!rows.length) {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="px-6 py-10 text-center text-sm font-black text-slate-400">
+                            未有符合篩選的月度資料
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            body.innerHTML = rows.map((row, index) => `
+                <tr class="${index % 2 === 0 ? 'bg-white/80' : 'bg-slate-50/70'}">
+                    <td class="font-black text-slate-900">${formatMonth(row.monthKey)}</td>
+                    <td>${row.brand}</td>
+                    <td class="data-font">${row.summary.total}</td>
+                    <td class="data-font text-teal-700">${row.summary.active}</td>
+                    <td class="data-font text-orange-700">${row.summary.left}</td>
+                    <td class="data-font">${row.summary.avgStay}日</td>
+                    <td class="data-font">${row.summary.b1}</td>
+                    <td class="data-font">${row.summary.b2}</td>
+                    <td class="data-font">${row.summary.b3}</td>
+                    <td class="data-font">${row.summary.b4}</td>
+                    <td class="data-font">${row.summary.b5}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderDetailTable() {
+            const records = getFilteredRecords().slice().sort((a, b) => {
+                if (b.jobDate.getTime() !== a.jobDate.getTime()) {
+                    return b.jobDate.getTime() - a.jobDate.getTime();
+                }
+                return a.brand.localeCompare(b.brand);
+            });
+            const body = document.getElementById('detailBody');
+            const monthLabel = formatMonth(selectedMonth);
+            const brandLabel = selectedBrand === 'ALL' ? '全部品牌' : selectedBrand;
+            document.getElementById('detailSummary').textContent = `顯示 ${records.length} 人 | 月份：${monthLabel} | Brand：${brandLabel}`;
+
+            if (!records.length) {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-10 text-center text-sm font-black text-slate-400">
+                            未有符合篩選的明細。
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            body.innerHTML = records.map(record => `
+                <tr>
+                    <td class="font-black text-slate-900">${record.brand}</td>
+                    <td>${record.name}</td>
+                    <td class="data-font">${formatDate(record.jobDate)}</td>
+                    <td class="data-font">${formatDate(record.termDate)}</td>
+                    <td>
+                        <span class="status-chip ${record.termDate ? 'bg-orange-100 text-orange-700' : 'bg-teal-100 text-teal-700'}">
+                            ${record.status}
+                        </span>
+                    </td>
+                    <td class="data-font">${record.stayDays}</td>
+                    <td>
+                        <span class="bucket-chip ${BUCKETS.find(bucket => bucket.id === record.bucketId)?.chip || 'bg-slate-100 text-slate-700'}">
+                            ${record.bucketLabel}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAll() {
+            renderMonthFilters();
+            renderBrandFilters();
+            renderSummaryCards();
+            renderBrandCards();
+            renderOverviewTable();
+            renderDetailTable();
+        }
+
+        function setBrandFromCard(brand) {
+            selectedBrand = brand;
+            renderAll();
+        }
+
+        function csvEscape(value) {
+            const text = String(value ?? '');
+            return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+        }
+
+        function gvizJsonToCsv(table) {
+            if (!table || !table.cols || !table.rows) return '';
+            const headers = table.cols.map(col => col.label || col.id || '');
+            const lines = [headers.map(csvEscape).join(',')];
+            table.rows.forEach(row => {
+                const values = headers.map((_, index) => {
+                    const cell = row.c[index];
+                    if (!cell) return '';
+                    if (cell.f != null) return cell.f;
+                    return cell.v != null ? cell.v : '';
+                });
+                lines.push(values.map(csvEscape).join(','));
+            });
+            return lines.join('\n');
+        }
+
+        function loadGvizCsvByJsonp(sheetName) {
+            return new Promise((resolve, reject) => {
+                const callbackName = `__sheet6_jsonp_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+                const script = document.createElement('script');
+                const cleanup = () => {
+                    delete window[callbackName];
+                    script.remove();
+                };
+
+                const timer = window.setTimeout(() => {
+                    cleanup();
+                    reject(new Error(`Sheet ${sheetName} JSONP timeout`));
+                }, 15000);
+
+                window[callbackName] = response => {
+                    try {
+                        window.clearTimeout(timer);
+                        cleanup();
+                        resolve(gvizJsonToCsv(response.table));
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+
+                script.onerror = () => {
+                    window.clearTimeout(timer);
+                    cleanup();
+                    reject(new Error(`Sheet ${sheetName} JSONP failed`));
+                };
+
+                script.src = `https://docs.google.com/spreadsheets/d/${SHEET_DOC_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=${encodeURIComponent(`out:json;responseHandler:${callbackName}`)}`;
+                document.body.appendChild(script);
+            });
+        }
+
+        async function fetchSheetText() {
+            try {
+                const response = await fetch(`${SHEET_URL}&t=${Date.now()}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.text();
+            } catch (_) {
+                return loadGvizCsvByJsonp(SHEET_NAME);
+            }
+        }
+
+        async function init() {
+            document.getElementById('loadingStatus').textContent = '正在讀取 Sheet6...';
+            document.getElementById('loadingStatus').classList.remove('hidden');
+
+            try {
+                const text = await fetchSheetText();
+                const parsed = await new Promise((resolve, reject) => {
+                    Papa.parse(text, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: resolve,
+                        error: reject
+                    });
+                });
+
+                allRecords = (parsed.data || []).map(buildRecord).filter(Boolean);
+                monthKeys = [...new Set(allRecords.map(record => record.monthKey))].sort();
+                brands = [...new Set(allRecords.map(record => record.brand))].sort();
+                lastLoadedAt = new Date();
+
+                if (!brands.includes(selectedBrand)) {
+                    selectedBrand = 'ALL';
+                }
+                if (!monthKeys.includes(selectedMonth)) {
+                    selectedMonth = 'ALL';
+                }
+
+                const asOfDate = getAsOfDate();
+                document.getElementById('asOfDate').textContent = formatDate(asOfDate);
+                document.getElementById('refreshMeta').textContent = `最近更新：${lastLoadedAt.toLocaleString('zh-HK')}`;
+                renderAll();
+                document.getElementById('loadingStatus').classList.add('hidden');
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loadingStatus').textContent = `讀取失敗：${error.message}`;
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
