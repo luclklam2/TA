@@ -354,12 +354,18 @@
         </section>
 
         <section class="glass-card p-6 md:p-7">
-            <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
                     <h2 class="text-2xl font-black text-slate-900">Monthly Review</h2>
-                    <p class="mt-2 text-sm font-bold text-slate-500">用線圖睇返每個月份走勢；全部品牌時拆做各 brand 的 IN / OUT，單一品牌時會改做 IN / ACTIVE / OUT 三條線。</p>
+                    <p class="mt-2 text-sm font-bold text-slate-500">預設先睇 ALL IN / OUT；右邊再揀品牌，就會一次過疊加所選 brand 的 IN / OUT 走勢。</p>
                 </div>
-                <div id="overviewMeta" class="text-sm font-black text-slate-500"></div>
+                <div class="flex flex-col gap-3 md:items-end">
+                    <div id="overviewMeta" class="text-sm font-black text-slate-500"></div>
+                    <div>
+                        <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">By Brand</div>
+                        <div id="overviewBrandFilters" class="flex flex-wrap gap-2 md:justify-end"></div>
+                    </div>
+                </div>
             </div>
             <div class="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)] mt-6">
                 <div id="overviewLegend" class="grid gap-3"></div>
@@ -440,6 +446,7 @@
         let brands = [];
         let selectedMonths = ['ALL'];
         let selectedBrand = 'ALL';
+        let selectedOverviewBrands = ['ALL'];
         let selectedDetailBucket = 'ALL';
         let lastLoadedAt = null;
 
@@ -624,6 +631,58 @@
                     selectedBrand = item.key;
                     renderAll();
                 };
+                container.appendChild(button);
+            });
+        }
+
+        function isAllOverviewBrandsSelected() {
+            return selectedOverviewBrands.includes('ALL') || selectedOverviewBrands.length === 0;
+        }
+
+        function getSelectedOverviewBrands() {
+            return isAllOverviewBrandsSelected()
+                ? ['ALL']
+                : brands.filter(brand => selectedOverviewBrands.includes(brand));
+        }
+
+        function toggleOverviewBrandSelection(brand) {
+            if (brand === 'ALL') {
+                selectedOverviewBrands = ['ALL'];
+                renderOverviewBrandFilters();
+                renderOverviewTable();
+                return;
+            }
+
+            if (isAllOverviewBrandsSelected()) {
+                selectedOverviewBrands = [brand];
+            } else if (selectedOverviewBrands.includes(brand)) {
+                selectedOverviewBrands = selectedOverviewBrands.filter(item => item !== brand);
+                if (!selectedOverviewBrands.length) {
+                    selectedOverviewBrands = ['ALL'];
+                }
+            } else {
+                const next = [...selectedOverviewBrands, brand];
+                selectedOverviewBrands = brands.filter(item => next.includes(item));
+            }
+
+            renderOverviewBrandFilters();
+            renderOverviewTable();
+        }
+
+        function renderOverviewBrandFilters() {
+            const container = document.getElementById('overviewBrandFilters');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            [{ key: 'ALL', label: 'ALL IN/OUT' }, ...brands.map(brand => ({ key: brand, label: brand }))].forEach(item => {
+                const button = document.createElement('button');
+                const active = item.key === 'ALL'
+                    ? isAllOverviewBrandsSelected()
+                    : selectedOverviewBrands.includes(item.key) && !isAllOverviewBrandsSelected();
+                button.className = `brand-pill ${active ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => toggleOverviewBrandSelection(item.key);
                 container.appendChild(button);
             });
         }
@@ -856,7 +915,7 @@
 
         function buildOverviewRows() {
             const rows = [];
-            const sourceRecords = allRecords.filter(record => selectedBrand === 'ALL' || record.brand === selectedBrand);
+            const sourceRecords = allRecords;
 
             getSelectedMonthKeys().forEach(monthKey => {
                 const monthRecords = sourceRecords.filter(record => record.monthKey === monthKey);
@@ -870,9 +929,32 @@
 
         function getOverviewSeries(rows) {
             const months = getSelectedMonthKeys();
+            const overviewBrands = getSelectedOverviewBrands();
 
-            if (selectedBrand === 'ALL') {
-                return brands.flatMap(brand => {
+            if (overviewBrands.length === 1 && overviewBrands[0] === 'ALL') {
+                return [
+                    {
+                        key: 'all-in',
+                        label: 'ALL IN',
+                        color: OVERVIEW_SERIES_COLORS.in,
+                        dash: '',
+                        values: months.map(monthKey => rows
+                            .filter(row => row.monthKey === monthKey)
+                            .reduce((sum, row) => sum + row.summary.total, 0))
+                    },
+                    {
+                        key: 'all-out',
+                        label: 'ALL OUT',
+                        color: OVERVIEW_SERIES_COLORS.out,
+                        dash: '8 8',
+                        values: months.map(monthKey => rows
+                            .filter(row => row.monthKey === monthKey)
+                            .reduce((sum, row) => sum + row.summary.left, 0))
+                    }
+                ];
+            }
+
+            return overviewBrands.flatMap(brand => {
                     const palette = OVERVIEW_SERIES_COLORS[brand] || { in: '#64748b', out: '#cbd5e1' };
                     const monthValues = months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === brand)?.summary || null);
                     return [
@@ -892,31 +974,6 @@
                         }
                     ];
                 }).filter(series => series.values.some(value => value > 0));
-            }
-
-            return [
-                {
-                    key: 'in',
-                    label: 'IN',
-                    color: OVERVIEW_SERIES_COLORS.in,
-                    dash: '',
-                    values: months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === selectedBrand)?.summary.total || 0)
-                },
-                {
-                    key: 'active',
-                    label: 'ACTIVE',
-                    color: OVERVIEW_SERIES_COLORS.active,
-                    dash: '',
-                    values: months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === selectedBrand)?.summary.active || 0)
-                },
-                {
-                    key: 'out',
-                    label: 'OUT',
-                    color: OVERVIEW_SERIES_COLORS.out,
-                    dash: '8 8',
-                    values: months.map(monthKey => rows.find(row => row.monthKey === monthKey && row.brand === selectedBrand)?.summary.left || 0)
-                }
-            ];
         }
 
         function renderOverviewTable() {
@@ -1066,6 +1123,7 @@
         function renderAll() {
             renderMonthFilters();
             renderBrandFilters();
+            renderOverviewBrandFilters();
             renderSummaryCards();
             renderBrandPieChart();
             renderBucketPieChart();
@@ -1167,6 +1225,12 @@
 
                 if (!brands.includes(selectedBrand)) {
                     selectedBrand = 'ALL';
+                }
+                if (!isAllOverviewBrandsSelected()) {
+                    selectedOverviewBrands = brands.filter(brand => selectedOverviewBrands.includes(brand));
+                    if (!selectedOverviewBrands.length) {
+                        selectedOverviewBrands = ['ALL'];
+                    }
                 }
                 if (!isAllMonthsSelected()) {
                     selectedMonths = selectedMonths.filter(monthKey => monthKeys.includes(monthKey));
