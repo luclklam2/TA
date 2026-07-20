@@ -152,6 +152,24 @@
             flex: 0 0 auto;
         }
 
+        .legend-card-button {
+            width: 100%;
+            text-align: left;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .legend-card-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 16px 32px -24px rgba(15, 35, 65, 0.45);
+        }
+
+        .legend-card-button.active {
+            border-color: rgba(15, 118, 110, 0.45);
+            box-shadow: 0 20px 36px -24px rgba(15, 118, 110, 0.45);
+            background: linear-gradient(135deg, rgba(240, 253, 250, 0.98), rgba(236, 253, 245, 0.96));
+        }
+
         .segment-b1 { background: #fb7185; }
         .segment-b2 { background: #f97316; }
         .segment-b3 { background: #fbbf24; }
@@ -232,7 +250,7 @@
 
         <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4" id="summaryCards"></section>
 
-        <section class="glass-card p-6 md:p-7">
+        <section id="detailSection" class="glass-card p-6 md:p-7">
             <div class="flex flex-col gap-6">
                 <div class="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
                     <div>
@@ -399,6 +417,7 @@
         let brands = [];
         let selectedMonths = ['ALL'];
         let selectedBrand = 'ALL';
+        let selectedDetailBucket = 'ALL';
         let lastLoadedAt = null;
 
         function parseDate(value) {
@@ -509,6 +528,19 @@
                 const brandOk = selectedBrand === 'ALL' || record.brand === selectedBrand;
                 return monthOk && brandOk;
             });
+        }
+
+        function getDetailRecords() {
+            const records = getFilteredRecords();
+            if (selectedDetailBucket === 'ALL') return records;
+            return records.filter(record => record.termDate && record.bucketId === selectedDetailBucket);
+        }
+
+        function setDetailBucketFilter(bucketId) {
+            selectedDetailBucket = selectedDetailBucket === bucketId ? 'ALL' : bucketId;
+            renderDetailTable();
+            document.getElementById('detailSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            renderBucketPieChart();
         }
 
         function groupByBrand(records) {
@@ -719,7 +751,7 @@
 
             pieChart.style.background = `conic-gradient(${gradientParts.join(', ')})`;
             pieLegend.innerHTML = entries.map(entry => `
-                <div class="rounded-2xl bg-white/80 px-4 py-4 ring-1 ring-slate-100">
+                <button type="button" class="legend-card-button rounded-2xl bg-white/80 px-4 py-4 ring-1 ring-slate-100 ${selectedDetailBucket === entry.id ? 'active' : ''}" onclick="setDetailBucketFilter('${entry.id}')">
                     <div class="flex items-center gap-3">
                         <span class="legend-dot" style="background:${entry.color}"></span>
                         <div class="text-sm font-black text-slate-900">${entry.label}</div>
@@ -728,7 +760,7 @@
                         <div class="text-3xl font-black data-font text-slate-900">${entry.count}</div>
                         <div class="text-sm font-black text-slate-500">${entry.percent}%</div>
                     </div>
-                </div>
+                </button>
             `).join('');
         }
 
@@ -842,7 +874,7 @@
         }
 
         function renderDetailTable() {
-            const records = getFilteredRecords().slice().sort((a, b) => {
+            const records = getDetailRecords().slice().sort((a, b) => {
                 if (b.jobDate.getTime() !== a.jobDate.getTime()) {
                     return b.jobDate.getTime() - a.jobDate.getTime();
                 }
@@ -851,7 +883,10 @@
             const body = document.getElementById('detailBody');
             const monthLabel = getSelectedMonthLabel();
             const brandLabel = selectedBrand === 'ALL' ? '全部品牌' : selectedBrand;
-            document.getElementById('detailSummary').textContent = `顯示 ${records.length} 人 | 月份：${monthLabel} | Brand：${brandLabel} | 無 Term Date = Still Active`;
+            const bucketLabel = selectedDetailBucket === 'ALL'
+                ? '全部類別'
+                : (BUCKETS.find(bucket => bucket.id === selectedDetailBucket)?.label || selectedDetailBucket);
+            document.getElementById('detailSummary').textContent = `顯示 ${records.length} 人 | 月份：${monthLabel} | Brand：${brandLabel} | Bucket：${bucketLabel} | 無 Term Date = Still Active`;
 
             if (!records.length) {
                 body.innerHTML = `
