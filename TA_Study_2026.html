@@ -580,7 +580,7 @@
             const container = document.getElementById('monthFilters');
             container.innerHTML = '';
 
-            [{ key: 'ALL', label: '??' }, ...monthKeys.map(key => ({ key, label: formatMonth(key) }))].forEach(item => {
+            [{ key: 'ALL', label: '全部' }, ...monthKeys.map(key => ({ key, label: formatMonth(key) }))].forEach(item => {
                 const button = document.createElement('button');
                 button.className = `filter-pill ${isMonthSelected(item.key) ? 'active' : ''}`;
                 button.textContent = item.label;
@@ -875,10 +875,14 @@
 
         function renderDetailTable() {
             const records = getDetailRecords().slice().sort((a, b) => {
+                const brandCompare = a.brand.localeCompare(b.brand);
+                if (brandCompare !== 0) {
+                    return brandCompare;
+                }
                 if (b.jobDate.getTime() !== a.jobDate.getTime()) {
                     return b.jobDate.getTime() - a.jobDate.getTime();
                 }
-                return a.brand.localeCompare(b.brand);
+                return a.name.localeCompare(b.name);
             });
             const body = document.getElementById('detailBody');
             const monthLabel = getSelectedMonthLabel();
