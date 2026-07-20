@@ -397,7 +397,7 @@
         let allRecords = [];
         let monthKeys = [];
         let brands = [];
-        let selectedMonth = 'ALL';
+        let selectedMonths = ['ALL'];
         let selectedBrand = 'ALL';
         let lastLoadedAt = null;
 
@@ -435,6 +435,50 @@
             return `${Number(month)}月`;
         }
 
+        function isAllMonthsSelected() {
+            return selectedMonths.includes('ALL') || selectedMonths.length === 0;
+        }
+
+        function getSelectedMonthKeys() {
+            return isAllMonthsSelected()
+                ? [...monthKeys]
+                : selectedMonths.filter(monthKey => monthKeys.includes(monthKey));
+        }
+
+        function isMonthSelected(monthKey) {
+            return monthKey === 'ALL' ? isAllMonthsSelected() : selectedMonths.includes(monthKey);
+        }
+
+        function getSelectedMonthLabel() {
+            if (isAllMonthsSelected()) return formatMonth('ALL');
+            return getSelectedMonthKeys().map(formatMonth).join(' + ');
+        }
+
+        function toggleMonthSelection(monthKey) {
+            if (monthKey === 'ALL') {
+                selectedMonths = ['ALL'];
+                renderAll();
+                return;
+            }
+
+            if (isAllMonthsSelected()) {
+                selectedMonths = [monthKey];
+                renderAll();
+                return;
+            }
+
+            if (selectedMonths.includes(monthKey)) {
+                selectedMonths = selectedMonths.filter(key => key !== monthKey);
+                if (!selectedMonths.length) {
+                    selectedMonths = ['ALL'];
+                }
+            } else {
+                selectedMonths = [...selectedMonths, monthKey].sort();
+            }
+
+            renderAll();
+        }
+
         function buildRecord(row) {
             const jobDate = parseDate(row.p_jobdate);
             if (!jobDate || jobDate.getFullYear() !== 2026) return null;
@@ -459,8 +503,9 @@
         }
 
         function getFilteredRecords() {
+            const selectedMonthKeys = getSelectedMonthKeys();
             return allRecords.filter(record => {
-                const monthOk = selectedMonth === 'ALL' || record.monthKey === selectedMonth;
+                const monthOk = selectedMonthKeys.includes(record.monthKey);
                 const brandOk = selectedBrand === 'ALL' || record.brand === selectedBrand;
                 return monthOk && brandOk;
             });
@@ -503,14 +548,11 @@
             const container = document.getElementById('monthFilters');
             container.innerHTML = '';
 
-            [{ key: 'ALL', label: '全年' }, ...monthKeys.map(key => ({ key, label: formatMonth(key) }))].forEach(item => {
+            [{ key: 'ALL', label: '??' }, ...monthKeys.map(key => ({ key, label: formatMonth(key) }))].forEach(item => {
                 const button = document.createElement('button');
-                button.className = `filter-pill ${selectedMonth === item.key ? 'active' : ''}`;
+                button.className = `filter-pill ${isMonthSelected(item.key) ? 'active' : ''}`;
                 button.textContent = item.label;
-                button.onclick = () => {
-                    selectedMonth = item.key;
-                    renderAll();
-                };
+                button.onclick = () => toggleMonthSelection(item.key);
                 container.appendChild(button);
             });
         }
@@ -539,7 +581,7 @@
                     title: '返工人數',
                     value: summary.total,
                     tone: 'from-slate-900 to-slate-700',
-                    note: `${formatMonth(selectedMonth)} / ${selectedBrand === 'ALL' ? '全部品牌' : selectedBrand}`
+                    note: `${getSelectedMonthLabel()} / ${selectedBrand === 'ALL' ? '全部品牌' : selectedBrand}`
                 },
                 {
                     title: '仍在職',
@@ -587,7 +629,7 @@
             const pieTotal = document.getElementById('brandPieTotal');
 
             pieTotal.textContent = total;
-            pieMeta.textContent = `${formatMonth(selectedMonth)} 篩選下，各品牌返工人數佔比。`;
+            pieMeta.textContent = `${getSelectedMonthLabel()} 篩選下，各品牌返工人數佔比。`;
 
             if (!total) {
                 section.classList.remove('hidden');
@@ -644,7 +686,7 @@
             const pieTotal = document.getElementById('bucketPieTotal');
 
             pieTotal.textContent = total;
-            pieMeta.textContent = `${formatMonth(selectedMonth)} 篩選下，全部品牌離職 category 佔比。`;
+            pieMeta.textContent = `${getSelectedMonthLabel()} 篩選下，全部品牌離職 category 佔比。`;
 
             if (!total) {
                 pieChart.style.background = 'conic-gradient(#e2e8f0 0deg 360deg)';
@@ -691,9 +733,7 @@
         }
 
         function renderBrandCards() {
-            const baseRecords = selectedMonth === 'ALL'
-                ? getFilteredRecords()
-                : allRecords.filter(record => record.monthKey === selectedMonth && (selectedBrand === 'ALL' || record.brand === selectedBrand));
+            const baseRecords = getFilteredRecords();
             const groups = groupByBrand(baseRecords);
             const container = document.getElementById('brandCards');
 
@@ -764,7 +804,7 @@
             const rows = [];
             const sourceRecords = allRecords.filter(record => selectedBrand === 'ALL' || record.brand === selectedBrand);
 
-            monthKeys.forEach(monthKey => {
+            getSelectedMonthKeys().forEach(monthKey => {
                 const monthRecords = sourceRecords.filter(record => record.monthKey === monthKey);
                 groupByBrand(monthRecords).forEach(group => {
                     rows.push({ monthKey, brand: group.brand, summary: summarize(group.records) });
@@ -809,7 +849,7 @@
                 return a.brand.localeCompare(b.brand);
             });
             const body = document.getElementById('detailBody');
-            const monthLabel = formatMonth(selectedMonth);
+            const monthLabel = getSelectedMonthLabel();
             const brandLabel = selectedBrand === 'ALL' ? '全部品牌' : selectedBrand;
             document.getElementById('detailSummary').textContent = `顯示 ${records.length} 人 | 月份：${monthLabel} | Brand：${brandLabel} | 無 Term Date = Still Active`;
 
@@ -950,8 +990,11 @@
                 if (!brands.includes(selectedBrand)) {
                     selectedBrand = 'ALL';
                 }
-                if (!monthKeys.includes(selectedMonth)) {
-                    selectedMonth = 'ALL';
+                if (!isAllMonthsSelected()) {
+                    selectedMonths = selectedMonths.filter(monthKey => monthKeys.includes(monthKey));
+                    if (!selectedMonths.length) {
+                        selectedMonths = ['ALL'];
+                    }
                 }
 
                 const asOfDate = getAsOfDate();
