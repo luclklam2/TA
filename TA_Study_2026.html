@@ -297,6 +297,10 @@
                         <div class="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Brand</div>
                         <div id="brandFilters" class="flex flex-wrap gap-2"></div>
                     </div>
+                    <div>
+                        <div class="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Position</div>
+                        <div id="positionFilters" class="flex flex-wrap gap-2"></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -433,6 +437,7 @@
                 <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Realized Filter</div>
                 <div id="detailRealizedFilters" class="flex flex-wrap gap-2"></div>
             </div>
+            <div id="detailMetricCards" class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3"></div>
             <div class="table-shell mt-6 bg-white/70">
                 <table>
                     <thead class="bg-teal-700 text-left text-xs font-black uppercase tracking-[0.15em] text-white">
@@ -498,6 +503,7 @@
         let brands = [];
         let selectedMonths = ['ALL'];
         let selectedBrand = 'ALL';
+        let selectedPosition = 'ALL';
         let selectedOverviewBrands = ['ALL'];
         let selectedDetailBucket = 'ALL';
         let selectedDetailSort = 'joinDate';
@@ -629,6 +635,8 @@
                 bucketId: bucket ? bucket.id : 'active',
                 bucketLabel: bucket ? bucket.label : 'Still Active',
                 monthKey: `${jobDate.getFullYear()}-${String(jobDate.getMonth() + 1).padStart(2, '0')}`,
+                positionLabel: '',
+                positionCategory: 'OTHER',
                 salesTotal: 0,
                 realizedTotal: 0,
                 acbAverage: 0,
@@ -646,6 +654,7 @@
                 staffId,
                 monthKey: `${reportYear}-${String(reportMonth).padStart(2, '0')}`,
                 brand: String(row['Brand'] || '').trim().toUpperCase(),
+                position: String(row['Position'] || '').trim().toUpperCase(),
                 sales: parseNumber(row['Actual Sales (Daily)']),
                 realized: parseNumber(row['Max. Realized Sales (Curr. Month End)']),
                 acb: parseNumber(row['Avg. ACB (Curr. Month End)'])
@@ -662,8 +671,11 @@
                         totalRealized: 0,
                         acbTotal: 0,
                         acbCount: 0,
+                        acbMax: 0,
                         monthCount: 0,
-                        months: {}
+                        months: {},
+                        positionLabel: '',
+                        positionCategory: 'OTHER'
                     });
                 }
 
@@ -672,6 +684,13 @@
                 summary.totalRealized += record.realized;
                 summary.acbTotal += record.acb;
                 summary.acbCount += 1;
+                summary.acbMax = Math.max(summary.acbMax, record.acb);
+                if (!summary.positionLabel && record.position) {
+                    summary.positionLabel = record.position;
+                }
+                if (record.position === 'BS') {
+                    summary.positionCategory = 'BS';
+                }
 
                 if (!summary.months[record.monthKey]) {
                     summary.months[record.monthKey] = {
@@ -703,6 +722,8 @@
 
                 return {
                     ...record,
+                    positionLabel: salesSummary.positionLabel,
+                    positionCategory: salesSummary.positionCategory,
                     salesTotal: salesSummary.totalSales,
                     realizedTotal: salesSummary.totalRealized,
                     acbAverage: salesSummary.avgAcb,
@@ -716,7 +737,9 @@
             return allRecords.filter(record => {
                 const monthOk = selectedMonthKeys.includes(record.monthKey);
                 const brandOk = selectedBrand === 'ALL' || record.brand === selectedBrand;
-                return monthOk && brandOk;
+                const positionOk = selectedPosition === 'ALL'
+                    || (selectedPosition === 'BS' ? record.positionCategory === 'BS' : record.positionCategory !== 'BS');
+                return monthOk && brandOk && positionOk;
             });
         }
 
@@ -811,6 +834,28 @@
                 button.textContent = item.label;
                 button.onclick = () => {
                     selectedBrand = item.key;
+                    renderAll();
+                };
+                container.appendChild(button);
+            });
+        }
+
+        function renderPositionFilters() {
+            const container = document.getElementById('positionFilters');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            [
+                { key: 'ALL', label: '全部' },
+                { key: 'BS', label: 'BS' },
+                { key: 'OTHER', label: '其他' }
+            ].forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedPosition === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => {
+                    selectedPosition = item.key;
                     renderAll();
                 };
                 container.appendChild(button);
@@ -976,6 +1021,43 @@
                 button.onclick = () => setDetailRealizedFilter(item.key);
                 container.appendChild(button);
             });
+        }
+
+        function renderDetailMetricCards(records) {
+            const container = document.getElementById('detailMetricCards');
+            if (!container) return;
+
+            const matched = records.filter(record => record.salesMonthCount > 0);
+            const salesTotal = matched.reduce((sum, record) => sum + record.salesTotal, 0);
+            const realizedTotal = matched.reduce((sum, record) => sum + record.realizedTotal, 0);
+            const acbMax = matched.reduce((max, record) => Math.max(max, record.acbAverage || 0), 0);
+            const salesAvg = matched.length ? Math.round(salesTotal / matched.length) : 0;
+            const realizedAvg = matched.length ? Math.round(realizedTotal / matched.length) : 0;
+            const acbAvg = matched.length ? Math.round(matched.reduce((sum, record) => sum + (record.acbAverage || 0), 0) / matched.length) : 0;
+
+            container.innerHTML = [
+                {
+                    label: 'Total Sales',
+                    value: formatNumber(salesTotal),
+                    note: `Avg. Sales ${formatNumber(salesAvg)}`
+                },
+                {
+                    label: 'Total Realized Sales',
+                    value: formatNumber(realizedTotal),
+                    note: `Avg. RS ${formatNumber(realizedAvg)}`
+                },
+                {
+                    label: 'ACB Max',
+                    value: formatNumber(acbMax),
+                    note: `Avg. ACB ${formatNumber(acbAvg)}`
+                }
+            ].map(item => `
+                <div class="chart-legend-button">
+                    <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">${item.label}</div>
+                    <div class="mt-3 text-3xl font-black data-font text-slate-900">${item.value}</div>
+                    <div class="mt-2 text-sm font-bold text-slate-500">${item.note}</div>
+                </div>
+            `).join('');
         }
 
         function setProductivityMetric(metricKey) {
@@ -1583,6 +1665,7 @@
             const body = document.getElementById('detailBody');
             const monthLabel = getSelectedMonthLabel();
             const brandLabel = selectedBrand === 'ALL' ? '全部品牌' : selectedBrand;
+            const positionLabel = selectedPosition === 'ALL' ? '全部' : (selectedPosition === 'BS' ? 'BS' : '其他');
             const bucketLabel = selectedDetailBucket === 'ALL'
                 ? '全部類別'
                 : (selectedDetailBucket === 'active'
@@ -1590,7 +1673,8 @@
                     : (BUCKETS.find(bucket => bucket.id === selectedDetailBucket)?.label || selectedDetailBucket));
             const salesLabel = selectedSalesFilter === 'positive' ? 'Sales > 0' : selectedSalesFilter === 'zero' ? 'Sales 0 / -' : '全部';
             const realizedLabel = selectedRealizedFilter === 'positive' ? 'Realized > 0' : selectedRealizedFilter === 'zero' ? 'Realized 0 / -' : '全部';
-            document.getElementById('detailSummary').textContent = `顯示 ${records.length} 人 | 月份：${monthLabel} | Brand：${brandLabel} | Stay Days：${bucketLabel} | Sales：${salesLabel} | Realized：${realizedLabel} | Sort：${getDetailSortLabel()} | 無 Term Date = Still Active`;
+            document.getElementById('detailSummary').textContent = `顯示 ${records.length} 人 | 月份：${monthLabel} | Brand：${brandLabel} | Position：${positionLabel} | Stay Days：${bucketLabel} | Sales：${salesLabel} | Realized：${realizedLabel} | Sort：${getDetailSortLabel()} | 無 Term Date = Still Active`;
+            renderDetailMetricCards(records);
 
             if (!records.length) {
                 body.innerHTML = `
@@ -1630,6 +1714,7 @@
         function renderAll() {
             renderMonthFilters();
             renderBrandFilters();
+            renderPositionFilters();
             renderOverviewBrandFilters();
             renderDetailStayFilters();
             renderDetailSortFilters();
