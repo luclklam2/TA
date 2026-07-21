@@ -425,6 +425,14 @@
                 <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Sort</div>
                 <div id="detailSortFilters" class="flex flex-wrap gap-2"></div>
             </div>
+            <div class="mt-5">
+                <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Sales Filter</div>
+                <div id="detailSalesFilters" class="flex flex-wrap gap-2"></div>
+            </div>
+            <div class="mt-5">
+                <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Realized Filter</div>
+                <div id="detailRealizedFilters" class="flex flex-wrap gap-2"></div>
+            </div>
             <div class="table-shell mt-6 bg-white/70">
                 <table>
                     <thead class="bg-teal-700 text-left text-xs font-black uppercase tracking-[0.15em] text-white">
@@ -493,6 +501,8 @@
         let selectedOverviewBrands = ['ALL'];
         let selectedDetailBucket = 'ALL';
         let selectedDetailSort = 'joinDate';
+        let selectedSalesFilter = 'all';
+        let selectedRealizedFilter = 'all';
         let selectedProductivityMetric = 'sales';
         let salesLookup = new Map();
         let lastLoadedAt = null;
@@ -711,12 +721,29 @@
         }
 
         function getDetailRecords() {
-            const records = getFilteredRecords();
-            if (selectedDetailBucket === 'ALL') return records;
-            if (selectedDetailBucket === 'active') {
-                return records.filter(record => !record.termDate);
+            let records = getFilteredRecords();
+
+            if (selectedDetailBucket !== 'ALL') {
+                if (selectedDetailBucket === 'active') {
+                    records = records.filter(record => !record.termDate);
+                } else {
+                    records = records.filter(record => record.termDate && record.bucketId === selectedDetailBucket);
+                }
             }
-            return records.filter(record => record.termDate && record.bucketId === selectedDetailBucket);
+
+            if (selectedSalesFilter === 'positive') {
+                records = records.filter(record => record.salesMonthCount && record.salesTotal > 0);
+            } else if (selectedSalesFilter === 'zero') {
+                records = records.filter(record => !record.salesMonthCount || record.salesTotal <= 0);
+            }
+
+            if (selectedRealizedFilter === 'positive') {
+                records = records.filter(record => record.salesMonthCount && record.realizedTotal > 0);
+            } else if (selectedRealizedFilter === 'zero') {
+                records = records.filter(record => !record.salesMonthCount || record.realizedTotal <= 0);
+            }
+
+            return records;
         }
 
         function setDetailBucketFilter(bucketId) {
@@ -868,6 +895,20 @@
             renderDetailTable();
         }
 
+        function setDetailSalesFilter(filterKey) {
+            selectedSalesFilter = filterKey;
+            renderDetailSalesFilters();
+            renderProductivitySection();
+            renderDetailTable();
+        }
+
+        function setDetailRealizedFilter(filterKey) {
+            selectedRealizedFilter = filterKey;
+            renderDetailRealizedFilters();
+            renderProductivitySection();
+            renderDetailTable();
+        }
+
         function getDetailSortLabel() {
             const labels = {
                 brand: 'By Brand',
@@ -893,6 +934,46 @@
                 button.className = `filter-pill ${selectedDetailSort === item.key ? 'active' : ''}`;
                 button.textContent = item.label;
                 button.onclick = () => setDetailSort(item.key);
+                container.appendChild(button);
+            });
+        }
+
+        function renderDetailSalesFilters() {
+            const container = document.getElementById('detailSalesFilters');
+            if (!container) return;
+
+            const items = [
+                { key: 'all', label: '全部' },
+                { key: 'positive', label: 'Sales > 0' },
+                { key: 'zero', label: 'Sales 0 / -' }
+            ];
+
+            container.innerHTML = '';
+            items.forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedSalesFilter === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => setDetailSalesFilter(item.key);
+                container.appendChild(button);
+            });
+        }
+
+        function renderDetailRealizedFilters() {
+            const container = document.getElementById('detailRealizedFilters');
+            if (!container) return;
+
+            const items = [
+                { key: 'all', label: '全部' },
+                { key: 'positive', label: 'Realized > 0' },
+                { key: 'zero', label: 'Realized 0 / -' }
+            ];
+
+            container.innerHTML = '';
+            items.forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedRealizedFilter === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => setDetailRealizedFilter(item.key);
                 container.appendChild(button);
             });
         }
@@ -929,7 +1010,8 @@
                 sales: 0,
                 realized: 0,
                 acbTotal: 0,
-                acbCount: 0
+                acbCount: 0,
+                acbMax: 0
             };
 
             records.forEach(record => {
@@ -937,8 +1019,11 @@
                 summary.realized += record.realized;
                 summary.acbTotal += record.acb;
                 summary.acbCount += 1;
+                summary.acbMax = Math.max(summary.acbMax, record.acb);
             });
 
+            summary.salesAverage = summary.acbCount ? Math.round(summary.sales / summary.acbCount) : 0;
+            summary.realizedAverage = summary.acbCount ? Math.round(summary.realized / summary.acbCount) : 0;
             summary.acbAverage = summary.acbCount ? Math.round(summary.acbTotal / summary.acbCount) : 0;
             return summary;
         }
@@ -986,10 +1071,12 @@
             const monthlyRows = getProductivityMonthlyRows(matchedSalesRecords);
             const summary = summarizeProductivity(matchedSalesRecords);
             const metric = PRODUCTIVITY_METRICS[selectedProductivityMetric];
+            const salesFilterLabel = selectedSalesFilter === 'positive' ? 'Sales > 0' : selectedSalesFilter === 'zero' ? 'Sales 0 / -' : 'All Sales';
+            const realizedFilterLabel = selectedRealizedFilter === 'positive' ? 'Realized > 0' : selectedRealizedFilter === 'zero' ? 'Realized 0 / -' : 'All Realized';
 
             renderProductivityMetricFilters();
 
-            document.getElementById('productivityMeta').textContent = `${summary.matchedStaff} matched staff / ${monthlyRows.length} sales months`;
+            document.getElementById('productivityMeta').textContent = `${summary.matchedStaff} matched staff / ${monthlyRows.length} sales months / ${salesFilterLabel} / ${realizedFilterLabel}`;
 
             cards.innerHTML = [
                 {
@@ -998,19 +1085,19 @@
                     note: `${detailRecords.length} selected hires`
                 },
                 {
-                    label: 'Sales',
+                    label: 'Sales Total',
                     value: formatNumber(summary.sales),
-                    note: 'Actual Sales (Daily)'
+                    note: `Avg ${formatNumber(summary.salesAverage)}`
                 },
                 {
-                    label: 'Realized Sales',
+                    label: 'Realized Total',
                     value: formatNumber(summary.realized),
-                    note: 'Max. Realized Sales'
+                    note: `Avg ${formatNumber(summary.realizedAverage)}`
                 },
                 {
-                    label: 'ACB',
-                    value: formatNumber(summary.acbAverage),
-                    note: 'Avg. ACB'
+                    label: 'ACB Max',
+                    value: formatNumber(summary.acbMax),
+                    note: `Avg ${formatNumber(summary.acbAverage)}`
                 }
             ].map(item => `
                 <div class="chart-legend-button">
@@ -1501,7 +1588,9 @@
                 : (selectedDetailBucket === 'active'
                     ? 'Still Active'
                     : (BUCKETS.find(bucket => bucket.id === selectedDetailBucket)?.label || selectedDetailBucket));
-            document.getElementById('detailSummary').textContent = `顯示 ${records.length} 人 | 月份：${monthLabel} | Brand：${brandLabel} | Stay Days：${bucketLabel} | Sort：${getDetailSortLabel()} | 無 Term Date = Still Active`;
+            const salesLabel = selectedSalesFilter === 'positive' ? 'Sales > 0' : selectedSalesFilter === 'zero' ? 'Sales 0 / -' : '全部';
+            const realizedLabel = selectedRealizedFilter === 'positive' ? 'Realized > 0' : selectedRealizedFilter === 'zero' ? 'Realized 0 / -' : '全部';
+            document.getElementById('detailSummary').textContent = `顯示 ${records.length} 人 | 月份：${monthLabel} | Brand：${brandLabel} | Stay Days：${bucketLabel} | Sales：${salesLabel} | Realized：${realizedLabel} | Sort：${getDetailSortLabel()} | 無 Term Date = Still Active`;
 
             if (!records.length) {
                 body.innerHTML = `
@@ -1544,6 +1633,8 @@
             renderOverviewBrandFilters();
             renderDetailStayFilters();
             renderDetailSortFilters();
+            renderDetailSalesFilters();
+            renderDetailRealizedFilters();
             renderSummaryCards();
             renderBrandPieChart();
             renderBucketPieChart();
