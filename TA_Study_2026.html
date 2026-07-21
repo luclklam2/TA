@@ -186,6 +186,39 @@
             padding: 0.95rem 1rem;
         }
 
+        .privacy-note {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            border-radius: 9999px;
+            background: rgba(15, 118, 110, 0.08);
+            color: #0f766e;
+            padding: 0.45rem 0.8rem;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .section-note {
+            border-radius: 1rem;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            background: rgba(248, 250, 252, 0.92);
+            padding: 0.9rem 1rem;
+        }
+
+        .alias-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border-radius: 9999px;
+            background: rgba(15, 23, 42, 0.06);
+            color: #334155;
+            padding: 0.32rem 0.62rem;
+            font-size: 0.72rem;
+            font-weight: 900;
+        }
+
         .chart-legend-line {
             width: 30px;
             height: 4px;
@@ -591,6 +624,83 @@
                 return `${Math.round(rounded / 1000)}K`;
             }
             return rounded.toLocaleString('en-US');
+        }
+
+        function getPublicStaffAlias(record) {
+            const raw = String(record?.staffId || record?.name || '').trim();
+            let hash = 0;
+            for (const char of raw) {
+                hash = (hash * 31 + char.charCodeAt(0)) % 10000;
+            }
+            return `Staff-${String(hash).padStart(4, '0')}`;
+        }
+
+        function ensurePublicSafePresentation() {
+            const brandMeta = document.getElementById('brandPerformanceMeta');
+            if (brandMeta) {
+                const headerBlock = brandMeta.parentElement;
+                const title = headerBlock?.querySelector('h2');
+                if (title) {
+                    title.textContent = 'By Brand Performance Review';
+                    title.classList.add('mt-3');
+                }
+
+                if (headerBlock && !document.getElementById('brandPerformancePrivacyNote')) {
+                    const note = document.createElement('div');
+                    note.id = 'brandPerformancePrivacyNote';
+                    note.className = 'privacy-note';
+                    note.textContent = 'Public-safe view';
+                    headerBlock.insertBefore(note, title || brandMeta);
+                }
+            }
+
+            const monthFilters = document.getElementById('brandPerformanceMonthFilters');
+            if (monthFilters && !document.getElementById('brandPerformanceSectionNote')) {
+                const note = document.createElement('div');
+                note.id = 'brandPerformanceSectionNote';
+                note.className = 'section-note mt-5 text-sm font-bold text-slate-500';
+                note.textContent = 'Public sharing mode keeps only anonymized staff aliases in the performer cards.';
+                monthFilters.parentElement?.before(note);
+            }
+
+            const detailSummary = document.getElementById('detailSummary');
+            const detailSection = detailSummary?.closest('section');
+            const detailBadge = detailSection?.querySelector('.rounded-2xl.bg-slate-100');
+            if (detailBadge) {
+                detailBadge.textContent = 'Public-safe detail view / staff names anonymized';
+            }
+
+            const detailHeaders = detailSection?.querySelectorAll('thead th');
+            if (detailHeaders && detailHeaders.length > 1) {
+                detailHeaders[1].textContent = 'Staff Alias';
+            }
+
+            const avgCards = document.querySelectorAll('#brandPerformanceAvgGrid > div');
+            avgCards.forEach(card => {
+                const title = card.querySelector('.text-xs');
+                if (title) title.textContent = 'Brand Avg.';
+            });
+
+            const performanceCards = document.querySelectorAll('#brandPerformanceGrid > div');
+            performanceCards.forEach(card => {
+                const panels = card.querySelectorAll('.mt-5.grid > div');
+                if (panels[0]) {
+                    const label = panels[0].querySelector('.text-xs');
+                    if (label) label.textContent = 'Top Performer';
+                }
+                if (panels[1]) {
+                    const label = panels[1].querySelector('.text-xs');
+                    if (label) label.textContent = 'Lowest Performer';
+                }
+                if (panels[2]) {
+                    const label = panels[2].querySelector('.text-xs');
+                    const sub = panels[2].querySelector('.mt-2');
+                    if (label) label.textContent = 'Average';
+                    if (sub && sub.textContent) {
+                        sub.textContent = sub.textContent.replace(/^.*?(Sales|Realized Sales|ACB)$/u, 'All Selected $1');
+                    }
+                }
+            });
         }
 
         function formatMetricWithAverage(totalValue, averageValue, averageLabel) {
@@ -1368,13 +1478,13 @@
                         <div class="mt-5 grid gap-3 md:grid-cols-3">
                             <div class="rounded-3xl bg-emerald-50 px-4 py-4">
                                 <div class="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">最好</div>
-                                <div class="mt-2 text-sm font-black text-slate-900 line-clamp-2">${best.name}</div>
+                                <div class="mt-3"><span class="alias-chip">${getPublicStaffAlias(best)}</span></div>
                                 <div class="mt-3 text-3xl font-black data-font text-slate-900">${formatRoundedK(getRecordMetricValue(best, selectedProductivityMetric))}</div>
                                 <div class="mt-2 text-xs font-bold text-slate-500">${getRecordMetricNote(best, selectedProductivityMetric)}</div>
                             </div>
                             <div class="rounded-3xl bg-rose-50 px-4 py-4">
                                 <div class="text-xs font-black uppercase tracking-[0.16em] text-rose-700">最差</div>
-                                <div class="mt-2 text-sm font-black text-slate-900 line-clamp-2">${worst.name}</div>
+                                <div class="mt-3"><span class="alias-chip">${getPublicStaffAlias(worst)}</span></div>
                                 <div class="mt-3 text-3xl font-black data-font text-slate-900">${formatRoundedK(getRecordMetricValue(worst, selectedProductivityMetric))}</div>
                                 <div class="mt-2 text-xs font-bold text-slate-500">${getRecordMetricNote(worst, selectedProductivityMetric)}</div>
                             </div>
@@ -1995,7 +2105,10 @@
             body.innerHTML = records.map(record => `
                 <tr>
                     <td class="font-black text-slate-900">${record.brand}</td>
-                    <td>${record.name}</td>
+                    <td>
+                        <div class="font-black text-slate-900">${getPublicStaffAlias(record)}</div>
+                        <div class="mt-1 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Anonymized</div>
+                    </td>
                     <td class="data-font">${formatDate(record.jobDate)}</td>
                     <td class="data-font">${formatDate(record.termDate)}</td>
                     <td>
@@ -2034,6 +2147,7 @@
             renderOverviewTable();
             renderProductivitySection();
             renderDetailTable();
+            ensurePublicSafePresentation();
         }
 
         function setBrandFromCard(brand) {
