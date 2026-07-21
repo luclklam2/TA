@@ -430,6 +430,10 @@
                 <div id="detailSortFilters" class="flex flex-wrap gap-2"></div>
             </div>
             <div class="mt-5">
+                <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Position Filter</div>
+                <div id="detailPositionFilters" class="flex flex-wrap gap-2"></div>
+            </div>
+            <div class="mt-5">
                 <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Sales Filter</div>
                 <div id="detailSalesFilters" class="flex flex-wrap gap-2"></div>
             </div>
@@ -855,6 +859,28 @@
 
         function renderPositionFilters() {
             const container = document.getElementById('positionFilters');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            [
+                { key: 'ALL', label: '全部' },
+                { key: 'BS', label: 'BS' },
+                { key: 'OTHER', label: '其他' }
+            ].forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedPosition === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => {
+                    selectedPosition = item.key;
+                    renderAll();
+                };
+                container.appendChild(button);
+            });
+        }
+
+        function renderDetailPositionFilters() {
+            const container = document.getElementById('detailPositionFilters');
             if (!container) return;
 
             container.innerHTML = '';
@@ -1731,6 +1757,7 @@
             renderOverviewBrandFilters();
             renderDetailStayFilters();
             renderDetailSortFilters();
+            renderDetailPositionFilters();
             renderDetailSalesFilters();
             renderDetailRealizedFilters();
             renderSummaryCards();
