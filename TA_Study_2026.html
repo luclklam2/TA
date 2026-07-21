@@ -394,6 +394,10 @@
                 <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Stay Days Filter</div>
                 <div id="detailStayFilters" class="flex flex-wrap gap-2"></div>
             </div>
+            <div class="mt-5">
+                <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Sort</div>
+                <div id="detailSortFilters" class="flex flex-wrap gap-2"></div>
+            </div>
             <div class="table-shell mt-6 bg-white/70">
                 <table>
                     <thead class="bg-teal-700 text-left text-xs font-black uppercase tracking-[0.15em] text-white">
@@ -452,6 +456,7 @@
         let selectedBrand = 'ALL';
         let selectedOverviewBrands = ['ALL'];
         let selectedDetailBucket = 'ALL';
+        let selectedDetailSort = 'joinDate';
         let lastLoadedAt = null;
 
         function parseDate(value) {
@@ -711,6 +716,41 @@
                 button.className = `filter-pill ${selectedDetailBucket === item.key ? 'active' : ''}`;
                 button.textContent = item.label;
                 button.onclick = () => setDetailBucketFilter(item.key);
+                container.appendChild(button);
+            });
+        }
+
+        function setDetailSort(sortKey) {
+            selectedDetailSort = sortKey;
+            renderDetailSortFilters();
+            renderDetailTable();
+        }
+
+        function getDetailSortLabel() {
+            const labels = {
+                brand: 'By Brand',
+                stayDate: 'By Stay Date',
+                joinDate: 'By Join Date'
+            };
+            return labels[selectedDetailSort] || 'By Join Date';
+        }
+
+        function renderDetailSortFilters() {
+            const container = document.getElementById('detailSortFilters');
+            if (!container) return;
+
+            const items = [
+                { key: 'brand', label: 'By Brand' },
+                { key: 'stayDate', label: 'By Stay Date' },
+                { key: 'joinDate', label: 'By Join Date' }
+            ];
+
+            container.innerHTML = '';
+            items.forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedDetailSort === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => setDetailSort(item.key);
                 container.appendChild(button);
             });
         }
@@ -1099,12 +1139,39 @@
 
         function renderDetailTable() {
             const records = getDetailRecords().slice().sort((a, b) => {
+                if (selectedDetailSort === 'brand') {
+                    const brandCompare = a.brand.localeCompare(b.brand);
+                    if (brandCompare !== 0) return brandCompare;
+                    if (b.jobDate.getTime() !== a.jobDate.getTime()) {
+                        return b.jobDate.getTime() - a.jobDate.getTime();
+                    }
+                    if ((b.stayDays ?? -1) !== (a.stayDays ?? -1)) {
+                        return (b.stayDays ?? -1) - (a.stayDays ?? -1);
+                    }
+                    return a.name.localeCompare(b.name);
+                }
+
+                if (selectedDetailSort === 'stayDate') {
+                    if ((b.stayDays ?? -1) !== (a.stayDays ?? -1)) {
+                        return (b.stayDays ?? -1) - (a.stayDays ?? -1);
+                    }
+                    if (b.jobDate.getTime() !== a.jobDate.getTime()) {
+                        return b.jobDate.getTime() - a.jobDate.getTime();
+                    }
+                    const brandCompare = a.brand.localeCompare(b.brand);
+                    if (brandCompare !== 0) return brandCompare;
+                    return a.name.localeCompare(b.name);
+                }
+
                 if (b.jobDate.getTime() !== a.jobDate.getTime()) {
                     return b.jobDate.getTime() - a.jobDate.getTime();
                 }
                 const brandCompare = a.brand.localeCompare(b.brand);
                 if (brandCompare !== 0) {
                     return brandCompare;
+                }
+                if ((b.stayDays ?? -1) !== (a.stayDays ?? -1)) {
+                    return (b.stayDays ?? -1) - (a.stayDays ?? -1);
                 }
                 return a.name.localeCompare(b.name);
             });
@@ -1116,7 +1183,7 @@
                 : (selectedDetailBucket === 'active'
                     ? 'Still Active'
                     : (BUCKETS.find(bucket => bucket.id === selectedDetailBucket)?.label || selectedDetailBucket));
-            document.getElementById('detailSummary').textContent = `顯示 ${records.length} 人 | 月份：${monthLabel} | Brand：${brandLabel} | Stay Days：${bucketLabel} | Sort：By Join Date | 無 Term Date = Still Active`;
+            document.getElementById('detailSummary').textContent = `顯示 ${records.length} 人 | 月份：${monthLabel} | Brand：${brandLabel} | Stay Days：${bucketLabel} | Sort：${getDetailSortLabel()} | 無 Term Date = Still Active`;
 
             if (!records.length) {
                 body.innerHTML = `
@@ -1155,6 +1222,7 @@
             renderBrandFilters();
             renderOverviewBrandFilters();
             renderDetailStayFilters();
+            renderDetailSortFilters();
             renderSummaryCards();
             renderBrandPieChart();
             renderBucketPieChart();
