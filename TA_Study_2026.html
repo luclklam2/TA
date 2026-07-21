@@ -390,6 +390,10 @@
                     點人名可以再喺表內搵返 term / active 情況
                 </div>
             </div>
+            <div class="mt-5">
+                <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Stay Days Filter</div>
+                <div id="detailStayFilters" class="flex flex-wrap gap-2"></div>
+            </div>
             <div class="table-shell mt-6 bg-white/70">
                 <table>
                     <thead class="bg-teal-700 text-left text-xs font-black uppercase tracking-[0.15em] text-white">
@@ -563,11 +567,15 @@
         function getDetailRecords() {
             const records = getFilteredRecords();
             if (selectedDetailBucket === 'ALL') return records;
+            if (selectedDetailBucket === 'active') {
+                return records.filter(record => !record.termDate);
+            }
             return records.filter(record => record.termDate && record.bucketId === selectedDetailBucket);
         }
 
         function setDetailBucketFilter(bucketId) {
             selectedDetailBucket = selectedDetailBucket === bucketId ? 'ALL' : bucketId;
+            renderDetailStayFilters();
             renderDetailTable();
             document.getElementById('detailSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             renderBucketPieChart();
@@ -683,6 +691,26 @@
                 button.className = `brand-pill ${active ? 'active' : ''}`;
                 button.textContent = item.label;
                 button.onclick = () => toggleOverviewBrandSelection(item.key);
+                container.appendChild(button);
+            });
+        }
+
+        function renderDetailStayFilters() {
+            const container = document.getElementById('detailStayFilters');
+            if (!container) return;
+
+            const items = [
+                { key: 'ALL', label: '全部' },
+                { key: 'active', label: 'Still Active' },
+                ...BUCKETS.map(bucket => ({ key: bucket.id, label: bucket.label }))
+            ];
+
+            container.innerHTML = '';
+            items.forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedDetailBucket === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => setDetailBucketFilter(item.key);
                 container.appendChild(button);
             });
         }
@@ -1071,12 +1099,12 @@
 
         function renderDetailTable() {
             const records = getDetailRecords().slice().sort((a, b) => {
+                if (b.jobDate.getTime() !== a.jobDate.getTime()) {
+                    return b.jobDate.getTime() - a.jobDate.getTime();
+                }
                 const brandCompare = a.brand.localeCompare(b.brand);
                 if (brandCompare !== 0) {
                     return brandCompare;
-                }
-                if (b.jobDate.getTime() !== a.jobDate.getTime()) {
-                    return b.jobDate.getTime() - a.jobDate.getTime();
                 }
                 return a.name.localeCompare(b.name);
             });
@@ -1085,8 +1113,10 @@
             const brandLabel = selectedBrand === 'ALL' ? '全部品牌' : selectedBrand;
             const bucketLabel = selectedDetailBucket === 'ALL'
                 ? '全部類別'
-                : (BUCKETS.find(bucket => bucket.id === selectedDetailBucket)?.label || selectedDetailBucket);
-            document.getElementById('detailSummary').textContent = `顯示 ${records.length} 人 | 月份：${monthLabel} | Brand：${brandLabel} | Bucket：${bucketLabel} | 無 Term Date = Still Active`;
+                : (selectedDetailBucket === 'active'
+                    ? 'Still Active'
+                    : (BUCKETS.find(bucket => bucket.id === selectedDetailBucket)?.label || selectedDetailBucket));
+            document.getElementById('detailSummary').textContent = `顯示 ${records.length} 人 | 月份：${monthLabel} | Brand：${brandLabel} | Stay Days：${bucketLabel} | Sort：By Join Date | 無 Term Date = Still Active`;
 
             if (!records.length) {
                 body.innerHTML = `
@@ -1124,6 +1154,7 @@
             renderMonthFilters();
             renderBrandFilters();
             renderOverviewBrandFilters();
+            renderDetailStayFilters();
             renderSummaryCards();
             renderBrandPieChart();
             renderBucketPieChart();
