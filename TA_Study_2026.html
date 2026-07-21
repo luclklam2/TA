@@ -374,6 +374,11 @@
                     </div>
                 </div>
             </div>
+            <div class="mt-5">
+                <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Brand Avg. Month</div>
+                <div id="brandPerformanceMonthFilters" class="flex flex-wrap gap-2"></div>
+            </div>
+            <div id="brandPerformanceAvgGrid" class="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3"></div>
             <div id="brandPerformanceGrid" class="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3"></div>
         </section>
 
@@ -526,6 +531,7 @@
         let monthKeys = [];
         let brands = [];
         let selectedMonths = ['ALL'];
+        let selectedBrandPerformanceMonths = ['ALL'];
         let selectedBrand = 'ALL';
         let selectedPosition = 'OTHER';
         let selectedOverviewBrands = ['ALL'];
@@ -650,6 +656,46 @@
             }
 
             renderAll();
+        }
+
+        function isAllBrandPerformanceMonthsSelected() {
+            return selectedBrandPerformanceMonths.includes('ALL') || selectedBrandPerformanceMonths.length === 0;
+        }
+
+        function getBrandPerformanceSelectedMonthKeys() {
+            return isAllBrandPerformanceMonthsSelected()
+                ? [...monthKeys]
+                : selectedBrandPerformanceMonths.filter(monthKey => monthKeys.includes(monthKey));
+        }
+
+        function getBrandPerformanceMonthLabel() {
+            if (isAllBrandPerformanceMonthsSelected()) return formatMonth('ALL');
+            return getBrandPerformanceSelectedMonthKeys().map(formatMonth).join(' + ');
+        }
+
+        function toggleBrandPerformanceMonthSelection(monthKey) {
+            if (monthKey === 'ALL') {
+                selectedBrandPerformanceMonths = ['ALL'];
+                renderBrandPerformanceSection();
+                return;
+            }
+
+            if (isAllBrandPerformanceMonthsSelected()) {
+                selectedBrandPerformanceMonths = [monthKey];
+                renderBrandPerformanceSection();
+                return;
+            }
+
+            if (selectedBrandPerformanceMonths.includes(monthKey)) {
+                selectedBrandPerformanceMonths = selectedBrandPerformanceMonths.filter(key => key !== monthKey);
+                if (!selectedBrandPerformanceMonths.length) {
+                    selectedBrandPerformanceMonths = ['ALL'];
+                }
+            } else {
+                selectedBrandPerformanceMonths = [...selectedBrandPerformanceMonths, monthKey].sort();
+            }
+
+            renderBrandPerformanceSection();
         }
 
         function buildRecord(row) {
@@ -1184,6 +1230,23 @@
             });
         }
 
+        function renderBrandPerformanceMonthFilters() {
+            const container = document.getElementById('brandPerformanceMonthFilters');
+            if (!container) return;
+
+            container.innerHTML = '';
+            [{ key: 'ALL', label: '全年' }, ...monthKeys.map(key => ({ key, label: formatMonth(key) }))].forEach(item => {
+                const button = document.createElement('button');
+                const isActive = item.key === 'ALL'
+                    ? isAllBrandPerformanceMonthsSelected()
+                    : selectedBrandPerformanceMonths.includes(item.key);
+                button.className = `filter-pill ${isActive ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => toggleBrandPerformanceMonthSelection(item.key);
+                container.appendChild(button);
+            });
+        }
+
         function getProductivitySalesRecords() {
             const selectedStaffIds = new Set(getDetailRecords().map(record => record.staffId).filter(Boolean));
             return salesRecords.filter(record => selectedStaffIds.has(record.staffId));
@@ -1209,24 +1272,42 @@
             return `${label} ${formatRoundedK(getRecordMetricAverage(record, metricKey))}`;
         }
 
+        function getBrandPerformanceBaseRecords() {
+            const selectedMonthKeys = getBrandPerformanceSelectedMonthKeys();
+            return allRecords.filter(record => {
+                const monthOk = selectedMonthKeys.includes(record.monthKey);
+                const brandOk = selectedBrand === 'ALL' || record.brand === selectedBrand;
+                const positionOk = selectedPosition === 'ALL'
+                    || (selectedPosition === 'BS' ? record.positionCategory === 'BS' : record.positionCategory !== 'BS');
+                return monthOk && brandOk && positionOk;
+            });
+        }
+
         function renderBrandPerformanceSection() {
+            const avgContainer = document.getElementById('brandPerformanceAvgGrid');
             const container = document.getElementById('brandPerformanceGrid');
             const meta = document.getElementById('brandPerformanceMeta');
-            if (!container || !meta) return;
+            if (!avgContainer || !container || !meta) return;
 
             renderBrandPerformancePositionFilters();
             renderBrandPerformanceMetricFilters();
+            renderBrandPerformanceMonthFilters();
 
             const metric = PRODUCTIVITY_METRICS[selectedProductivityMetric];
-            const detailRecords = getFilteredRecords();
+            const detailRecords = getBrandPerformanceBaseRecords();
             const groups = brands.map(brand => ({
                 brand,
                 records: detailRecords.filter(record => record.brand === brand)
             })).filter(group => group.records.length > 0);
 
-            meta.textContent = `${metric.label} / ${getSelectedMonthLabel()} / ${selectedPosition === 'ALL' ? '全部 Position' : (selectedPosition === 'BS' ? 'BS' : '其他')} / ${detailRecords.length} selected hires`;
+            meta.textContent = `${metric.label} / ${getBrandPerformanceMonthLabel()} / ${selectedPosition === 'ALL' ? '全部 Position' : (selectedPosition === 'BS' ? 'BS' : '其他')} / ${detailRecords.length} selected hires`;
 
             if (!groups.length) {
+                avgContainer.innerHTML = `
+                    <div class="glass-card col-span-full p-8 text-center text-sm font-black text-slate-500">
+                        目前月份篩選下未有 Brand Avg. 資料。
+                    </div>
+                `;
                 container.innerHTML = `
                     <div class="glass-card col-span-full p-8 text-center text-sm font-black text-slate-500">
                         目前篩選下未有可比較嘅新人表現。
@@ -1234,6 +1315,30 @@
                 `;
                 return;
             }
+
+            avgContainer.innerHTML = groups.map(group => {
+                const averageValue = Math.round(group.records.reduce((sum, record) => sum + getRecordMetricValue(record, selectedProductivityMetric), 0) / group.records.length);
+                return `
+                    <div class="glass-card p-5">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Brand Avg.</div>
+                                <div class="mt-2 text-2xl font-black text-slate-900">${group.brand}</div>
+                            </div>
+                            <div class="rounded-2xl bg-slate-100 px-4 py-3 text-right">
+                                <div class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Selected</div>
+                                <div class="mt-2 text-2xl font-black data-font text-slate-900">${group.records.length}</div>
+                            </div>
+                        </div>
+                        <div class="mt-5 rounded-3xl bg-slate-100 px-5 py-5">
+                            <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-500">平均</div>
+                            <div class="mt-2 text-sm font-black text-slate-700">Brand ${metric.label}</div>
+                            <div class="mt-3 text-4xl font-black data-font text-slate-900">${formatRoundedK(averageValue)}</div>
+                            <div class="mt-2 text-xs font-bold text-slate-500">Based on ${group.records.length} hires / ${getBrandPerformanceMonthLabel()}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
 
             container.innerHTML = groups.map(group => {
                 const ranked = group.records.slice().sort((a, b) => {
@@ -2046,6 +2151,12 @@
                     selectedMonths = selectedMonths.filter(monthKey => monthKeys.includes(monthKey));
                     if (!selectedMonths.length) {
                         selectedMonths = ['ALL'];
+                    }
+                }
+                if (!isAllBrandPerformanceMonthsSelected()) {
+                    selectedBrandPerformanceMonths = selectedBrandPerformanceMonths.filter(monthKey => monthKeys.includes(monthKey));
+                    if (!selectedBrandPerformanceMonths.length) {
+                        selectedBrandPerformanceMonths = ['ALL'];
                     }
                 }
 
