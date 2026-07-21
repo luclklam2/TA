@@ -360,6 +360,26 @@
         <section class="glass-card p-6 md:p-7">
             <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
+                    <h2 class="text-2xl font-black text-slate-900">By Brand 新人表現</h2>
+                    <p id="brandPerformanceMeta" class="mt-2 text-sm font-bold text-slate-500"></p>
+                </div>
+                <div class="flex flex-col gap-3 md:items-end">
+                    <div>
+                        <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Selected Position</div>
+                        <div id="brandPerformancePositionFilters" class="flex flex-wrap gap-2 md:justify-end"></div>
+                    </div>
+                    <div>
+                        <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Metric</div>
+                        <div id="brandPerformanceMetricFilters" class="flex flex-wrap gap-2 md:justify-end"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="brandPerformanceGrid" class="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3"></div>
+        </section>
+
+        <section class="glass-card p-6 md:p-7">
+            <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div>
                     <h2 class="text-2xl font-black text-slate-900">Monthly Review</h2>
                     <p class="mt-2 text-sm font-bold text-slate-500">預設先睇 ALL IN / OUT；右邊再揀品牌，就會一次過疊加所選 brand 的 IN / OUT 走勢。</p>
                 </div>
@@ -1102,6 +1122,8 @@
         function setProductivityMetric(metricKey) {
             selectedProductivityMetric = metricKey;
             renderProductivityMetricFilters();
+            renderBrandPerformanceMetricFilters();
+            renderBrandPerformanceSection();
             renderProductivitySection();
         }
 
@@ -1119,9 +1141,137 @@
             });
         }
 
+        function renderBrandPerformanceMetricFilters() {
+            const container = document.getElementById('brandPerformanceMetricFilters');
+            if (!container) return;
+
+            container.innerHTML = '';
+            Object.entries(PRODUCTIVITY_METRICS).forEach(([key, metric]) => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedProductivityMetric === key ? 'active' : ''}`;
+                button.textContent = metric.label;
+                button.onclick = () => setProductivityMetric(key);
+                container.appendChild(button);
+            });
+        }
+
+        function renderBrandPerformancePositionFilters() {
+            const container = document.getElementById('brandPerformancePositionFilters');
+            if (!container) return;
+
+            container.innerHTML = '';
+            [
+                { key: 'ALL', label: '全部' },
+                { key: 'BS', label: 'BS' },
+                { key: 'OTHER', label: '其他' }
+            ].forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedPosition === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => {
+                    selectedPosition = item.key;
+                    renderAll();
+                };
+                container.appendChild(button);
+            });
+        }
+
         function getProductivitySalesRecords() {
             const selectedStaffIds = new Set(getDetailRecords().map(record => record.staffId).filter(Boolean));
             return salesRecords.filter(record => selectedStaffIds.has(record.staffId));
+        }
+
+        function getRecordMetricValue(record, metricKey) {
+            if (metricKey === 'realized') return record.realizedTotal || 0;
+            if (metricKey === 'acb') return record.acbAverage || 0;
+            return record.salesTotal || 0;
+        }
+
+        function getRecordMetricAverage(record, metricKey) {
+            if (metricKey === 'realized') return record.realizedAverage || 0;
+            if (metricKey === 'acb') return record.acbAverage || 0;
+            return record.salesAverage || 0;
+        }
+
+        function getRecordMetricNote(record, metricKey) {
+            if (metricKey === 'acb') {
+                return `ACB ${formatNumber(getRecordMetricAverage(record, metricKey))}`;
+            }
+            const label = metricKey === 'realized' ? 'Avg. RS' : 'Avg. Sales';
+            return `${label} ${formatNumber(getRecordMetricAverage(record, metricKey))}`;
+        }
+
+        function renderBrandPerformanceSection() {
+            const container = document.getElementById('brandPerformanceGrid');
+            const meta = document.getElementById('brandPerformanceMeta');
+            if (!container || !meta) return;
+
+            renderBrandPerformancePositionFilters();
+            renderBrandPerformanceMetricFilters();
+
+            const metric = PRODUCTIVITY_METRICS[selectedProductivityMetric];
+            const detailRecords = getDetailRecords();
+            const groups = brands.map(brand => ({
+                brand,
+                records: detailRecords.filter(record => record.brand === brand)
+            })).filter(group => group.records.length > 0);
+
+            meta.textContent = `${metric.label} / ${getSelectedMonthLabel()} / ${selectedPosition === 'ALL' ? '全部 Position' : (selectedPosition === 'BS' ? 'BS' : '其他')} / ${detailRecords.length} selected hires`;
+
+            if (!groups.length) {
+                container.innerHTML = `
+                    <div class="glass-card col-span-full p-8 text-center text-sm font-black text-slate-500">
+                        目前篩選下未有可比較嘅新人表現。
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = groups.map(group => {
+                const ranked = group.records.slice().sort((a, b) => {
+                    const diff = getRecordMetricValue(b, selectedProductivityMetric) - getRecordMetricValue(a, selectedProductivityMetric);
+                    if (diff !== 0) return diff;
+                    return a.name.localeCompare(b.name);
+                });
+                const best = ranked[0];
+                const worst = ranked[ranked.length - 1];
+                const averageValue = Math.round(group.records.reduce((sum, record) => sum + getRecordMetricValue(record, selectedProductivityMetric), 0) / group.records.length);
+
+                return `
+                    <div class="glass-card p-5">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Brand</div>
+                                <div class="mt-2 text-2xl font-black text-slate-900">${group.brand}</div>
+                            </div>
+                            <div class="rounded-2xl bg-slate-100 px-4 py-3 text-right">
+                                <div class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Selected</div>
+                                <div class="mt-2 text-2xl font-black data-font text-slate-900">${group.records.length}</div>
+                            </div>
+                        </div>
+                        <div class="mt-5 grid gap-3 md:grid-cols-3">
+                            <div class="rounded-3xl bg-emerald-50 px-4 py-4">
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">最好</div>
+                                <div class="mt-2 text-sm font-black text-slate-900 line-clamp-2">${best.name}</div>
+                                <div class="mt-3 text-3xl font-black data-font text-slate-900">${formatNumber(getRecordMetricValue(best, selectedProductivityMetric))}</div>
+                                <div class="mt-2 text-xs font-bold text-slate-500">${getRecordMetricNote(best, selectedProductivityMetric)}</div>
+                            </div>
+                            <div class="rounded-3xl bg-rose-50 px-4 py-4">
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-rose-700">最差</div>
+                                <div class="mt-2 text-sm font-black text-slate-900 line-clamp-2">${worst.name}</div>
+                                <div class="mt-3 text-3xl font-black data-font text-slate-900">${formatNumber(getRecordMetricValue(worst, selectedProductivityMetric))}</div>
+                                <div class="mt-2 text-xs font-bold text-slate-500">${getRecordMetricNote(worst, selectedProductivityMetric)}</div>
+                            </div>
+                            <div class="rounded-3xl bg-slate-100 px-4 py-4">
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-500">平均</div>
+                                <div class="mt-2 text-sm font-black text-slate-700">${metric.label}</div>
+                                <div class="mt-3 text-3xl font-black data-font text-slate-900">${formatNumber(averageValue)}</div>
+                                <div class="mt-2 text-xs font-bold text-slate-500">Based on ${group.records.length} hires</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function summarizeProductivity(records) {
@@ -1764,6 +1914,7 @@
             renderBrandPieChart();
             renderBucketPieChart();
             renderBrandCards();
+            renderBrandPerformanceSection();
             renderOverviewTable();
             renderProductivitySection();
             renderDetailTable();
