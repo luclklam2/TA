@@ -448,8 +448,8 @@
                             <th>Term Date</th>
                     <th>Status</th>
                     <th>Stay Days</th>
-                    <th>Sales</th>
-                    <th>Realized Sales</th>
+                    <th>Total Sales<br><span class="text-[10px] normal-case tracking-normal text-white/80">(Avg. Sales)</span></th>
+                    <th>Total Realized Sales<br><span class="text-[10px] normal-case tracking-normal text-white/80">(Avg. RS)</span></th>
                     <th>ACB</th>
                     <th>Bucket</th>
                         </tr>
@@ -552,6 +552,13 @@
             return Math.round(value || 0).toLocaleString('en-US');
         }
 
+        function formatMetricWithAverage(totalValue, averageValue, averageLabel) {
+            return `
+                <div class="data-font">${formatNumber(totalValue)}</div>
+                <div class="mt-1 text-[11px] font-bold text-slate-400">${averageLabel} ${formatNumber(averageValue)}</div>
+            `;
+        }
+
         function formatCompactMetricValue(metricKey, value) {
             const rounded = Math.round(value || 0);
             if (rounded >= 1000) {
@@ -638,7 +645,9 @@
                 positionLabel: '',
                 positionCategory: 'OTHER',
                 salesTotal: 0,
+                salesAverage: 0,
                 realizedTotal: 0,
+                realizedAverage: 0,
                 acbAverage: 0,
                 salesMonthCount: 0
             };
@@ -709,6 +718,8 @@
             });
 
             lookup.forEach(summary => {
+                summary.avgSales = summary.monthCount ? Math.round(summary.totalSales / summary.monthCount) : 0;
+                summary.avgRealized = summary.monthCount ? Math.round(summary.totalRealized / summary.monthCount) : 0;
                 summary.avgAcb = summary.acbCount ? Math.round(summary.acbTotal / summary.acbCount) : 0;
             });
 
@@ -725,7 +736,9 @@
                     positionLabel: salesSummary.positionLabel,
                     positionCategory: salesSummary.positionCategory,
                     salesTotal: salesSummary.totalSales,
+                    salesAverage: salesSummary.avgSales,
                     realizedTotal: salesSummary.totalRealized,
+                    realizedAverage: salesSummary.avgRealized,
                     acbAverage: salesSummary.avgAcb,
                     salesMonthCount: salesSummary.monthCount
                 };
@@ -1699,8 +1712,8 @@
                         </span>
                     </td>
                     <td class="data-font">${record.stayDays ?? '-'}</td>
-                    <td class="data-font">${record.salesMonthCount ? formatNumber(record.salesTotal) : '-'}</td>
-                    <td class="data-font">${record.salesMonthCount ? formatNumber(record.realizedTotal) : '-'}</td>
+                    <td>${record.salesMonthCount ? formatMetricWithAverage(record.salesTotal, record.salesAverage, 'Avg. Sales') : '-'}</td>
+                    <td>${record.salesMonthCount ? formatMetricWithAverage(record.realizedTotal, record.realizedAverage, 'Avg. RS') : '-'}</td>
                     <td class="data-font">${record.salesMonthCount ? formatNumber(record.acbAverage) : '-'}</td>
                     <td>
                         <span class="bucket-chip ${record.termDate ? (BUCKETS.find(bucket => bucket.id === record.bucketId)?.chip || 'bg-slate-100 text-slate-700') : 'bg-teal-100 text-teal-700'}">
