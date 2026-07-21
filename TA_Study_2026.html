@@ -49,6 +49,77 @@
             box-shadow: 0 18px 50px -26px rgba(15, 35, 65, 0.35);
             backdrop-filter: blur(18px);
             border-radius: 1.5rem;
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.88);
+            box-shadow: 0 24px 60px -32px rgba(15, 35, 65, 0.42);
+        }
+
+        .section-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            border-radius: 9999px;
+            background: rgba(15, 118, 110, 0.08);
+            color: #0f766e;
+            padding: 0.45rem 0.85rem;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .sticky-controls {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sticky-controls::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background:
+                linear-gradient(120deg, rgba(255,255,255,0.18), transparent 35%),
+                radial-gradient(circle at top right, rgba(15,118,110,0.08), transparent 24%);
+            pointer-events: none;
+        }
+
+        .filter-cluster {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            gap: 1.15rem;
+        }
+
+        .filter-group-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .soft-panel {
+            border-radius: 1.25rem;
+            border: 1px solid rgba(226, 232, 240, 0.88);
+            background: rgba(255, 255, 255, 0.56);
+            padding: 1rem;
+        }
+
+        .soft-note {
+            border-radius: 1rem;
+            border: 1px solid rgba(251, 191, 36, 0.28);
+            background: linear-gradient(180deg, rgba(255, 251, 235, 0.92), rgba(255, 247, 237, 0.88));
+            color: #9a3412;
+            padding: 0.95rem 1rem;
+        }
+
+        .header-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            min-height: 3rem;
         }
 
         .data-font {
@@ -175,6 +246,17 @@
             border: 1px solid rgba(226, 232, 240, 0.85);
             background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,250,252,0.88));
             padding: 1.25rem;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 18px 36px -28px rgba(15, 35, 65, 0.22);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-shell::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.18), transparent 22%);
+            pointer-events: none;
         }
 
         .chart-legend-button {
@@ -184,6 +266,7 @@
             border: 1px solid rgba(226, 232, 240, 0.95);
             background: rgba(255, 255, 255, 0.82);
             padding: 0.95rem 1rem;
+            box-shadow: 0 10px 24px -22px rgba(15, 35, 65, 0.35);
         }
 
         .privacy-note {
@@ -219,6 +302,48 @@
             font-weight: 900;
         }
 
+        .id-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 9999px;
+            background: rgba(15, 118, 110, 0.08);
+            color: #0f766e;
+            padding: 0.32rem 0.62rem;
+            font-size: 0.72rem;
+            font-weight: 900;
+        }
+
+        .metric-panel {
+            border-radius: 1.35rem;
+            border: 1px solid rgba(226, 232, 240, 0.88);
+            padding: 1rem 1.05rem;
+            background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.92));
+        }
+
+        .metric-panel.active {
+            border-color: rgba(15, 118, 110, 0.22);
+            box-shadow: 0 18px 30px -24px rgba(15, 118, 110, 0.42);
+        }
+
+        .metric-panel.sales.active {
+            background: linear-gradient(180deg, rgba(240, 253, 250, 0.98), rgba(236, 253, 245, 0.94));
+        }
+
+        .metric-panel.realized.active {
+            background: linear-gradient(180deg, rgba(255, 247, 237, 0.98), rgba(255, 237, 213, 0.94));
+        }
+
+        .metric-panel.acb.active {
+            background: linear-gradient(180deg, rgba(239, 246, 255, 0.98), rgba(219, 234, 254, 0.94));
+        }
+
+        .metric-panel-note {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #64748b;
+        }
+
         .chart-legend-line {
             width: 30px;
             height: 4px;
@@ -237,6 +362,7 @@
             overflow-x: auto;
             border-radius: 1.15rem;
             border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
         }
 
         table {
@@ -247,6 +373,156 @@
         th, td {
             white-space: nowrap;
             padding: 0.95rem 0.8rem;
+        }
+
+        tbody tr {
+            transition: background-color 0.18s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(240, 253, 250, 0.72);
+        }
+
+        @media (min-width: 1280px) {
+            .sticky-controls {
+                position: sticky;
+                top: 1rem;
+                z-index: 20;
+            }
+
+            .filter-group-grid {
+                grid-template-columns: 1.2fr 1fr;
+                align-items: start;
+            }
+        }
+
+        .executive-mode {
+            background:
+                linear-gradient(180deg, #f4f7fb 0%, #eef3f8 54%, #f8fafc 100%);
+            color: #14233a;
+        }
+
+        .executive-mode::before {
+            background-image:
+                linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.55;
+        }
+
+        .executive-mode .glass-card {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(203, 213, 225, 0.75);
+            box-shadow: 0 16px 34px -28px rgba(15, 23, 42, 0.28);
+            border-radius: 1.35rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .executive-mode .glass-card:hover {
+            transform: none;
+            border-color: rgba(203, 213, 225, 0.88);
+            box-shadow: 0 18px 36px -28px rgba(15, 23, 42, 0.3);
+        }
+
+        .executive-mode .section-kicker {
+            background: rgba(15, 23, 42, 0.06);
+            color: #334155;
+            letter-spacing: 0.16em;
+        }
+
+        .executive-mode .chart-shell {
+            background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96));
+            border-color: rgba(203, 213, 225, 0.78);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.92), 0 18px 32px -28px rgba(15, 23, 42, 0.18);
+        }
+
+        .executive-mode .chart-shell::before,
+        .executive-mode .sticky-controls::after {
+            display: none;
+        }
+
+        .executive-mode .soft-panel,
+        .executive-mode .section-note {
+            background: rgba(255, 255, 255, 0.94);
+            border-color: rgba(203, 213, 225, 0.8);
+        }
+
+        .executive-mode .soft-note {
+            border-color: rgba(226, 232, 240, 0.95);
+            background: linear-gradient(180deg, rgba(248,250,252,0.98), rgba(241,245,249,0.96));
+            color: #475569;
+        }
+
+        .executive-mode .filter-pill,
+        .executive-mode .brand-pill {
+            background: #ffffff;
+            border-color: rgba(203, 213, 225, 0.9);
+            color: #475569;
+            box-shadow: none;
+        }
+
+        .executive-mode .filter-pill:hover,
+        .executive-mode .brand-pill:hover {
+            transform: none;
+            border-color: rgba(100, 116, 139, 0.58);
+            color: #0f172a;
+        }
+
+        .executive-mode .filter-pill.active,
+        .executive-mode .brand-pill.active {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #ffffff;
+            box-shadow: 0 10px 22px -18px rgba(15, 23, 42, 0.72);
+        }
+
+        .executive-summary-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .executive-summary-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 100%;
+            height: 5px;
+            background: var(--summary-accent, #0f172a);
+        }
+
+        .executive-summary-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            padding: 0.35rem 0.7rem;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            background: rgba(15, 23, 42, 0.06);
+            color: #475569;
+        }
+
+        .executive-note {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #64748b;
+            line-height: 1.55;
+        }
+
+        .executive-hero {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .executive-hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(140deg, rgba(15,23,42,0.02), transparent 35%),
+                radial-gradient(circle at top right, rgba(15,23,42,0.05), transparent 18%);
+            pointer-events: none;
         }
 
         .table-shell::-webkit-scrollbar {
@@ -505,15 +781,16 @@
                     <thead class="bg-teal-700 text-left text-xs font-black uppercase tracking-[0.15em] text-white">
                         <tr>
                             <th>Brand</th>
-                            <th>Name</th>
-                            <th>Job Date</th>
+                            <th>Staff Alias</th>
+                            <th>Staff ID</th>
+                            <th>Join Date</th>
                             <th>Term Date</th>
-                    <th>Status</th>
-                    <th>Stay Days</th>
-                    <th>Total Sales<br><span class="text-[10px] normal-case tracking-normal text-white/80">(Avg. Sales)</span></th>
-                    <th>Total Realized Sales<br><span class="text-[10px] normal-case tracking-normal text-white/80">(Avg. RS)</span></th>
-                    <th>ACB</th>
-                    <th>Bucket</th>
+                            <th>Status</th>
+                            <th>Stay Days</th>
+                            <th>Total Sales<br><span class="text-[10px] normal-case tracking-normal text-white/80">(Avg. Sales)</span></th>
+                            <th>Total Realized Sales<br><span class="text-[10px] normal-case tracking-normal text-white/80">(Avg. RS)</span></th>
+                            <th>Avg. ACB</th>
+                            <th>Stay Bucket</th>
                         </tr>
                     </thead>
                     <tbody id="detailBody" class="divide-y divide-slate-100 bg-white/70 text-sm font-bold text-slate-700"></tbody>
@@ -635,7 +912,31 @@
             return `Staff-${String(hash).padStart(4, '0')}`;
         }
 
+        function getPositionLabel(positionKey = selectedPosition) {
+            if (positionKey === 'ALL') return 'All Positions';
+            if (positionKey === 'BS') return 'BS';
+            return 'Other Positions';
+        }
+
+        function getBrandLabel(brandKey = selectedBrand) {
+            return brandKey === 'ALL' ? 'All Brands' : brandKey;
+        }
+
+        function getDetailBucketLabel(bucketKey = selectedDetailBucket) {
+            if (bucketKey === 'ALL') return 'All Buckets';
+            if (bucketKey === 'active') return 'Still Active';
+            return BUCKETS.find(bucket => bucket.id === bucketKey)?.label || bucketKey;
+        }
+
+        function normalizeCopyDeck() {
+            const fixedBucketLabels = ['1-2日', '3-14日', '15-30日', '31-90日', '91+日'];
+            BUCKETS.forEach((bucket, index) => {
+                bucket.label = fixedBucketLabels[index] || bucket.label;
+            });
+        }
+
         function ensurePublicSafePresentation() {
+            normalizeCopyDeck();
             const brandMeta = document.getElementById('brandPerformanceMeta');
             if (brandMeta) {
                 const headerBlock = brandMeta.parentElement;
@@ -652,6 +953,11 @@
                     note.textContent = 'Public-safe view';
                     headerBlock.insertBefore(note, title || brandMeta);
                 }
+
+                const intro = title?.nextElementSibling;
+                if (intro && intro.tagName === 'P') {
+                    intro.textContent = 'Brand average 同 performer cards 會保留匿名 alias，而 Staff ID 會照常顯示方便內部 review。';
+                }
             }
 
             const monthFilters = document.getElementById('brandPerformanceMonthFilters');
@@ -659,7 +965,7 @@
                 const note = document.createElement('div');
                 note.id = 'brandPerformanceSectionNote';
                 note.className = 'section-note mt-5 text-sm font-bold text-slate-500';
-                note.textContent = 'Public sharing mode keeps only anonymized staff aliases in the performer cards.';
+                note.textContent = 'Public sharing mode keeps only anonymized staff aliases in performer cards, while Staff ID stays visible for internal review.';
                 monthFilters.parentElement?.before(note);
             }
 
@@ -667,12 +973,43 @@
             const detailSection = detailSummary?.closest('section');
             const detailBadge = detailSection?.querySelector('.rounded-2xl.bg-slate-100');
             if (detailBadge) {
-                detailBadge.textContent = 'Public-safe detail view / staff names anonymized';
+                detailBadge.textContent = 'Public-safe detail view / alias shown + Staff ID visible';
             }
 
             const detailHeaders = detailSection?.querySelectorAll('thead th');
-            if (detailHeaders && detailHeaders.length > 1) {
+            if (detailHeaders && detailHeaders.length > 2) {
                 detailHeaders[1].textContent = 'Staff Alias';
+                detailHeaders[2].textContent = 'Staff ID';
+            }
+
+            const sectionTitles = document.querySelectorAll('h2.text-2xl');
+            sectionTitles.forEach(node => {
+                if (node.textContent?.includes('By Brand')) {
+                    node.textContent = 'By Brand Performance Review';
+                }
+                if (node.textContent === 'Monthly Review') {
+                    const copy = node.parentElement?.querySelector('p');
+                    if (copy) {
+                        copy.textContent = '預設先睇 ALL IN / OUT；右邊再揀品牌，就會一次過疊加所選 brand 的 IN / OUT 走勢。';
+                    }
+                }
+                if (node.textContent === 'Productivity Review') {
+                    const copy = node.parentElement?.querySelector('p');
+                    if (copy) {
+                        copy.textContent = '按目前篩選嘅新人對返 Sales sheet，再按 Report Month 睇 Sales / Realized Sales / ACB 趨勢。';
+                    }
+                }
+            });
+
+            document.getElementById('overviewChartEmpty')?.replaceChildren(document.createTextNode('No monthly review data under the current filters.'));
+            document.getElementById('productivityChartEmpty')?.replaceChildren(document.createTextNode('No productivity data under the current filters.'));
+            const brandPieMeta = document.getElementById('brandPieMeta');
+            if (brandPieMeta) {
+                brandPieMeta.textContent = `${getSelectedMonthLabel()} selected hires by brand`;
+            }
+            const bucketPieMeta = document.getElementById('bucketPieMeta');
+            if (bucketPieMeta) {
+                bucketPieMeta.textContent = `${getSelectedMonthLabel()} left hires by stay bucket`;
             }
 
             const avgCards = document.querySelectorAll('#brandPerformanceAvgGrid > div');
@@ -978,7 +1315,6 @@
             renderDetailStayFilters();
             renderProductivitySection();
             renderDetailTable();
-            document.getElementById('detailSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             renderBucketPieChart();
         }
 
@@ -2150,6 +2486,467 @@
             ensurePublicSafePresentation();
         }
 
+        function renderBrandPerformanceSection() {
+            const avgContainer = document.getElementById('brandPerformanceAvgGrid');
+            const container = document.getElementById('brandPerformanceGrid');
+            const meta = document.getElementById('brandPerformanceMeta');
+            if (!avgContainer || !container || !meta) return;
+
+            renderBrandPerformancePositionFilters();
+            renderBrandPerformanceMetricFilters();
+            renderBrandPerformanceMonthFilters();
+
+            const metric = PRODUCTIVITY_METRICS[selectedProductivityMetric];
+            const detailRecords = getBrandPerformanceBaseRecords();
+            const groups = brands.map(brand => ({
+                brand,
+                records: detailRecords.filter(record => record.brand === brand)
+            })).filter(group => group.records.length > 0);
+
+            meta.textContent = `${metric.label} / ${getBrandPerformanceMonthLabel()} / ${getPositionLabel()} / ${detailRecords.length} selected hires`;
+
+            if (!groups.length) {
+                avgContainer.innerHTML = `
+                    <div class="glass-card col-span-full p-8 text-center text-sm font-black text-slate-500">
+                        No brand-average data under the current filters.
+                    </div>
+                `;
+                container.innerHTML = `
+                    <div class="glass-card col-span-full p-8 text-center text-sm font-black text-slate-500">
+                        No performer card data under the current filters.
+                    </div>
+                `;
+                return;
+            }
+
+            avgContainer.innerHTML = groups.map(group => {
+                const averageSales = Math.round(group.records.reduce((sum, record) => sum + getRecordMetricValue(record, 'sales'), 0) / group.records.length);
+                const averageRealized = Math.round(group.records.reduce((sum, record) => sum + getRecordMetricValue(record, 'realized'), 0) / group.records.length);
+                const averageAcb = Math.round(group.records.reduce((sum, record) => sum + getRecordMetricValue(record, 'acb'), 0) / group.records.length);
+
+                return `
+                    <div class="glass-card p-5">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Brand Avg.</div>
+                                <div class="mt-2 text-2xl font-black text-slate-900">${group.brand}</div>
+                            </div>
+                            <div class="rounded-2xl bg-slate-100 px-4 py-3 text-right">
+                                <div class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Selected</div>
+                                <div class="mt-2 text-2xl font-black data-font text-slate-900">${group.records.length}</div>
+                            </div>
+                        </div>
+                        <div class="mt-5 grid gap-3 md:grid-cols-3">
+                            <div class="metric-panel sales ${selectedProductivityMetric === 'sales' ? 'active' : ''}">
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-teal-700">Sales Avg.</div>
+                                <div class="mt-3 text-3xl font-black data-font text-slate-900">${formatRoundedK(averageSales)}</div>
+                                <div class="mt-2 metric-panel-note">Across ${group.records.length} hires</div>
+                            </div>
+                            <div class="metric-panel realized ${selectedProductivityMetric === 'realized' ? 'active' : ''}">
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-orange-700">RS Avg.</div>
+                                <div class="mt-3 text-3xl font-black data-font text-slate-900">${formatRoundedK(averageRealized)}</div>
+                                <div class="mt-2 metric-panel-note">Realized sales average</div>
+                            </div>
+                            <div class="metric-panel acb ${selectedProductivityMetric === 'acb' ? 'active' : ''}">
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-blue-700">ACB Avg.</div>
+                                <div class="mt-3 text-3xl font-black data-font text-slate-900">${formatRoundedK(averageAcb)}</div>
+                                <div class="mt-2 metric-panel-note">Month scope: ${getBrandPerformanceMonthLabel()}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = groups.map(group => {
+                const ranked = group.records.slice().sort((a, b) => {
+                    const diff = getRecordMetricValue(b, selectedProductivityMetric) - getRecordMetricValue(a, selectedProductivityMetric);
+                    if (diff !== 0) return diff;
+                    return a.name.localeCompare(b.name);
+                });
+                const best = ranked[0];
+                const worst = ranked[ranked.length - 1];
+                const averageValue = Math.round(group.records.reduce((sum, record) => sum + getRecordMetricValue(record, selectedProductivityMetric), 0) / group.records.length);
+
+                return `
+                    <div class="glass-card p-5">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Brand</div>
+                                <div class="mt-2 text-2xl font-black text-slate-900">${group.brand}</div>
+                            </div>
+                            <div class="rounded-2xl bg-slate-100 px-4 py-3 text-right">
+                                <div class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Selected</div>
+                                <div class="mt-2 text-2xl font-black data-font text-slate-900">${group.records.length}</div>
+                            </div>
+                        </div>
+                        <div class="mt-5 grid gap-3 md:grid-cols-3">
+                            <div class="rounded-3xl bg-emerald-50 px-4 py-4">
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Top Performer</div>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    <span class="alias-chip">${getPublicStaffAlias(best)}</span>
+                                    <span class="id-chip">ID ${best.staffId || '-'}</span>
+                                </div>
+                                <div class="mt-3 text-3xl font-black data-font text-slate-900">${formatRoundedK(getRecordMetricValue(best, selectedProductivityMetric))}</div>
+                                <div class="mt-2 text-xs font-bold text-slate-500">${getRecordMetricNote(best, selectedProductivityMetric)}</div>
+                            </div>
+                            <div class="rounded-3xl bg-rose-50 px-4 py-4">
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-rose-700">Lowest Performer</div>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    <span class="alias-chip">${getPublicStaffAlias(worst)}</span>
+                                    <span class="id-chip">ID ${worst.staffId || '-'}</span>
+                                </div>
+                                <div class="mt-3 text-3xl font-black data-font text-slate-900">${formatRoundedK(getRecordMetricValue(worst, selectedProductivityMetric))}</div>
+                                <div class="mt-2 text-xs font-bold text-slate-500">${getRecordMetricNote(worst, selectedProductivityMetric)}</div>
+                            </div>
+                            <div class="rounded-3xl bg-slate-100 px-4 py-4">
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Average</div>
+                                <div class="mt-2 text-sm font-black text-slate-700">All Selected ${metric.label}</div>
+                                <div class="mt-3 text-3xl font-black data-font text-slate-900">${formatRoundedK(averageValue)}</div>
+                                <div class="mt-2 text-xs font-bold text-slate-500">Based on all ${group.records.length} selected hires</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderProductivitySection() {
+            const cards = document.getElementById('productivityCards');
+            const chart = document.getElementById('productivityChart');
+            const empty = document.getElementById('productivityChartEmpty');
+            const detailRecords = getDetailRecords();
+            const matchedSalesRecords = getProductivitySalesRecords();
+            const monthlyRows = getProductivityMonthlyRows(matchedSalesRecords);
+            const summary = summarizeProductivity(matchedSalesRecords);
+            const metric = PRODUCTIVITY_METRICS[selectedProductivityMetric];
+            const salesFilterLabel = selectedSalesFilter === 'positive' ? 'Sales > 0' : selectedSalesFilter === 'zero' ? 'Sales 0 / -' : 'All Sales';
+            const realizedFilterLabel = selectedRealizedFilter === 'positive' ? 'Realized > 0' : selectedRealizedFilter === 'zero' ? 'Realized 0 / -' : 'All Realized';
+
+            renderProductivityMetricFilters();
+
+            document.getElementById('productivityMeta').textContent = `${summary.matchedStaff} matched staff / ${monthlyRows.length} sales months / ${salesFilterLabel} / ${realizedFilterLabel}`;
+
+            cards.innerHTML = [
+                {
+                    label: 'Matched Staff',
+                    value: summary.matchedStaff,
+                    note: `${detailRecords.length} selected hires`
+                },
+                {
+                    label: 'Sales Total',
+                    value: formatRoundedK(summary.sales),
+                    note: `Avg ${formatRoundedK(summary.salesAverage)}`
+                },
+                {
+                    label: 'Realized Total',
+                    value: formatRoundedK(summary.realized),
+                    note: `Avg ${formatRoundedK(summary.realizedAverage)}`
+                },
+                {
+                    label: 'ACB Max',
+                    value: formatRoundedK(summary.acbMax),
+                    note: `Avg ${formatRoundedK(summary.acbAverage)}`
+                }
+            ].map(item => `
+                <div class="chart-legend-button">
+                    <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">${item.label}</div>
+                    <div class="mt-3 text-3xl font-black data-font text-slate-900">${item.value}</div>
+                    <div class="mt-2 text-sm font-bold text-slate-500">${item.note}</div>
+                </div>
+            `).join('');
+
+            if (!monthlyRows.length) {
+                chart.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+
+            const width = Math.max(720, monthlyRows.length * 120);
+            const height = 340;
+            const padding = { top: 20, right: 28, bottom: 56, left: 68 };
+            const innerWidth = width - padding.left - padding.right;
+            const innerHeight = height - padding.top - padding.bottom;
+            const values = monthlyRows.map(row => row[selectedProductivityMetric]);
+            const maxValue = Math.max(1, ...values);
+            const yMax = maxValue <= 5 ? 5 : Math.ceil(maxValue / 5) * 5;
+            const ySteps = 5;
+            const xStep = monthlyRows.length > 1 ? innerWidth / (monthlyRows.length - 1) : 0;
+            const yForValue = value => padding.top + innerHeight - ((value / yMax) * innerHeight);
+            const xForIndex = index => padding.left + (monthlyRows.length > 1 ? index * xStep : innerWidth / 2);
+            const fillPalette = {
+                sales: ['rgba(15,118,110,0.28)', 'rgba(45,212,191,0.03)'],
+                realized: ['rgba(249,115,22,0.24)', 'rgba(253,186,116,0.03)'],
+                acb: ['rgba(37,99,235,0.24)', 'rgba(147,197,253,0.03)']
+            };
+            const [fillTop, fillBottom] = fillPalette[selectedProductivityMetric] || fillPalette.sales;
+            const points = monthlyRows.map((row, index) => ({
+                x: xForIndex(index),
+                y: yForValue(row[selectedProductivityMetric]),
+                value: row[selectedProductivityMetric],
+                month: formatMonth(row.monthKey)
+            }));
+            const baselineY = padding.top + innerHeight;
+            const linePoints = points.map(point => `${point.x},${point.y}`).join(' ');
+            const areaPath = [
+                `M ${points[0].x} ${baselineY}`,
+                ...points.map(point => `L ${point.x} ${point.y}`),
+                `L ${points[points.length - 1].x} ${baselineY}`,
+                'Z'
+            ].join(' ');
+
+            const gridLines = Array.from({ length: ySteps + 1 }, (_, index) => {
+                const value = Math.round((yMax / ySteps) * index);
+                const y = yForValue(value);
+                return `
+                    <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(148,163,184,0.18)" stroke-width="1" />
+                    <text x="${padding.left - 12}" y="${y + 4}" text-anchor="end" font-size="11" font-weight="800" fill="#64748b">${formatCompactMetricValue(selectedProductivityMetric, value)}</text>
+                `;
+            }).join('');
+
+            const monthGuides = points.map(point => `
+                <line x1="${point.x}" y1="${padding.top}" x2="${point.x}" y2="${baselineY}" stroke="rgba(148,163,184,0.08)" stroke-width="1" />
+                <text x="${point.x}" y="${height - 18}" text-anchor="middle" font-size="12" font-weight="800" fill="#475569">${point.month}</text>
+            `).join('');
+
+            const pointMarkup = points.map((point, index) => `
+                <circle cx="${point.x}" cy="${point.y}" r="${index === points.length - 1 ? '6' : '5'}" fill="${metric.color}" stroke="#ffffff" stroke-width="3" />
+                <text x="${point.x}" y="${point.y - 14}" text-anchor="middle" font-size="11" font-weight="900" fill="${metric.color}">${formatCompactMetricValue(selectedProductivityMetric, point.value)}</text>
+            `).join('');
+
+            chart.innerHTML = `
+                <svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="Productivity review trend chart">
+                    <defs>
+                        <linearGradient id="productivityAreaFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="${fillTop}" />
+                            <stop offset="100%" stop-color="${fillBottom}" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="0" y="0" width="${width}" height="${height}" rx="22" fill="transparent"></rect>
+                    ${gridLines}
+                    ${monthGuides}
+                    <path d="${areaPath}" fill="url(#productivityAreaFill)"></path>
+                    <polyline fill="none" stroke="${metric.color}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="${linePoints}" />
+                    ${pointMarkup}
+                    <line x1="${padding.left}" y1="${baselineY}" x2="${width - padding.right}" y2="${baselineY}" stroke="rgba(15,23,42,0.22)" stroke-width="1.5"></line>
+                </svg>
+            `;
+        }
+
+        function renderDetailTable() {
+            const records = getDetailRecords().slice().sort((a, b) => {
+                if (selectedDetailSort === 'brand') {
+                    const brandCompare = a.brand.localeCompare(b.brand);
+                    if (brandCompare !== 0) return brandCompare;
+                    if (b.jobDate.getTime() !== a.jobDate.getTime()) {
+                        return b.jobDate.getTime() - a.jobDate.getTime();
+                    }
+                    if ((b.stayDays ?? -1) !== (a.stayDays ?? -1)) {
+                        return (b.stayDays ?? -1) - (a.stayDays ?? -1);
+                    }
+                    return a.name.localeCompare(b.name);
+                }
+
+                if (selectedDetailSort === 'stayDate') {
+                    if ((b.stayDays ?? -1) !== (a.stayDays ?? -1)) {
+                        return (b.stayDays ?? -1) - (a.stayDays ?? -1);
+                    }
+                    if (b.jobDate.getTime() !== a.jobDate.getTime()) {
+                        return b.jobDate.getTime() - a.jobDate.getTime();
+                    }
+                    const brandCompare = a.brand.localeCompare(b.brand);
+                    if (brandCompare !== 0) return brandCompare;
+                    return a.name.localeCompare(b.name);
+                }
+
+                if (b.jobDate.getTime() !== a.jobDate.getTime()) {
+                    return b.jobDate.getTime() - a.jobDate.getTime();
+                }
+                const brandCompare = a.brand.localeCompare(b.brand);
+                if (brandCompare !== 0) {
+                    return brandCompare;
+                }
+                if ((b.stayDays ?? -1) !== (a.stayDays ?? -1)) {
+                    return (b.stayDays ?? -1) - (a.stayDays ?? -1);
+                }
+                return a.name.localeCompare(b.name);
+            });
+
+            const body = document.getElementById('detailBody');
+            const monthLabel = getSelectedMonthLabel();
+            const brandLabel = getBrandLabel();
+            const positionLabel = getPositionLabel();
+            const bucketLabel = getDetailBucketLabel();
+            const salesLabel = selectedSalesFilter === 'positive' ? 'Sales > 0' : selectedSalesFilter === 'zero' ? 'Sales 0 / -' : 'All';
+            const realizedLabel = selectedRealizedFilter === 'positive' ? 'Realized > 0' : selectedRealizedFilter === 'zero' ? 'Realized 0 / -' : 'All';
+
+            document.getElementById('detailSummary').textContent = `Showing ${records.length} hires | Month: ${monthLabel} | Brand: ${brandLabel} | Position: ${positionLabel} | Stay Days: ${bucketLabel} | Sales: ${salesLabel} | Realized: ${realizedLabel} | Sort: ${getDetailSortLabel()} | No Term Date = Still Active`;
+            renderDetailMetricCards(records);
+
+            if (!records.length) {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="px-6 py-10 text-center text-sm font-black text-slate-400">
+                            No staff detail matches the current filters.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            body.innerHTML = records.map(record => `
+                <tr>
+                    <td class="font-black text-slate-900">${record.brand}</td>
+                    <td>
+                        <div class="font-black text-slate-900">${getPublicStaffAlias(record)}</div>
+                        <div class="mt-1 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Alias</div>
+                    </td>
+                    <td class="data-font text-slate-600">${record.staffId || '-'}</td>
+                    <td class="data-font">${formatDate(record.jobDate)}</td>
+                    <td class="data-font">${formatDate(record.termDate)}</td>
+                    <td>
+                        <span class="status-chip ${record.termDate ? 'bg-orange-100 text-orange-700' : 'bg-teal-100 text-teal-700'}">
+                            ${record.status}
+                        </span>
+                    </td>
+                    <td class="data-font">${record.stayDays ?? '-'}</td>
+                    <td>${record.salesMonthCount ? formatMetricWithAverage(record.salesTotal, record.salesAverage, 'Avg. Sales') : '-'}</td>
+                    <td>${record.salesMonthCount ? formatMetricWithAverage(record.realizedTotal, record.realizedAverage, 'Avg. RS') : '-'}</td>
+                    <td class="data-font">${record.salesMonthCount ? formatNumber(record.acbAverage) : '-'}</td>
+                    <td>
+                        <span class="bucket-chip ${record.termDate ? (BUCKETS.find(bucket => bucket.id === record.bucketId)?.chip || 'bg-slate-100 text-slate-700') : 'bg-teal-100 text-teal-700'}">
+                            ${record.bucketLabel}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAll() {
+            normalizeCopyDeck();
+            renderMonthFilters();
+            renderBrandFilters();
+            renderPositionFilters();
+            renderOverviewBrandFilters();
+            renderDetailStayFilters();
+            renderDetailSortFilters();
+            renderDetailPositionFilters();
+            renderDetailSalesFilters();
+            renderDetailRealizedFilters();
+            renderSummaryCards();
+            renderBrandPieChart();
+            renderBucketPieChart();
+            renderBrandCards();
+            renderBrandPerformanceSection();
+            renderOverviewTable();
+            renderProductivitySection();
+            renderDetailTable();
+            ensurePublicSafePresentation();
+        }
+
+        function renderPositionFilters() {
+            const container = document.getElementById('positionFilters');
+            if (!container) return;
+
+            container.innerHTML = '';
+            [
+                { key: 'ALL', label: '全部' },
+                { key: 'BS', label: 'BS' },
+                { key: 'OTHER', label: '其他' }
+            ].forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedPosition === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => {
+                    selectedPosition = item.key;
+                    renderAll();
+                };
+                container.appendChild(button);
+            });
+        }
+
+        function renderDetailPositionFilters() {
+            const container = document.getElementById('detailPositionFilters');
+            if (!container) return;
+
+            container.innerHTML = '';
+            [
+                { key: 'ALL', label: '全部' },
+                { key: 'BS', label: 'BS' },
+                { key: 'OTHER', label: '其他' }
+            ].forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedPosition === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => {
+                    selectedPosition = item.key;
+                    renderAll();
+                };
+                container.appendChild(button);
+            });
+        }
+
+        function renderDetailStayFilters() {
+            const container = document.getElementById('detailStayFilters');
+            if (!container) return;
+
+            const items = [
+                { key: 'ALL', label: '全部' },
+                { key: 'active', label: 'Still Active' },
+                ...BUCKETS.map(bucket => ({ key: bucket.id, label: bucket.label }))
+            ];
+
+            container.innerHTML = '';
+            items.forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedDetailBucket === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => setDetailBucketFilter(item.key);
+                container.appendChild(button);
+            });
+        }
+
+        function renderDetailSalesFilters() {
+            const container = document.getElementById('detailSalesFilters');
+            if (!container) return;
+
+            const items = [
+                { key: 'all', label: '全部' },
+                { key: 'positive', label: 'Sales > 0' },
+                { key: 'zero', label: 'Sales 0 / -' }
+            ];
+
+            container.innerHTML = '';
+            items.forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedSalesFilter === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => setDetailSalesFilter(item.key);
+                container.appendChild(button);
+            });
+        }
+
+        function renderDetailRealizedFilters() {
+            const container = document.getElementById('detailRealizedFilters');
+            if (!container) return;
+
+            const items = [
+                { key: 'all', label: '全部' },
+                { key: 'positive', label: 'Realized > 0' },
+                { key: 'zero', label: 'Realized 0 / -' }
+            ];
+
+            container.innerHTML = '';
+            items.forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedRealizedFilter === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => setDetailRealizedFilter(item.key);
+                container.appendChild(button);
+            });
+        }
+
         function setBrandFromCard(brand) {
             selectedBrand = brand;
             renderAll();
@@ -2220,6 +3017,601 @@
             } catch (_) {
                 return loadGvizCsvByJsonp(sheetName);
             }
+        }
+
+        function buildSmoothSvgPath(points) {
+            if (!points.length) return '';
+            if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+            let d = `M ${points[0].x} ${points[0].y}`;
+            for (let index = 0; index < points.length - 1; index += 1) {
+                const p0 = points[index - 1] || points[index];
+                const p1 = points[index];
+                const p2 = points[index + 1];
+                const p3 = points[index + 2] || p2;
+                const cp1x = p1.x + (p2.x - p0.x) / 6;
+                const cp1y = p1.y + (p2.y - p0.y) / 6;
+                const cp2x = p2.x - (p3.x - p1.x) / 6;
+                const cp2y = p2.y - (p3.y - p1.y) / 6;
+                d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+            }
+            return d;
+        }
+
+        function buildAreaSvgPath(points, baselineY) {
+            if (!points.length) return '';
+            return [
+                `M ${points[0].x} ${baselineY}`,
+                `L ${points[0].x} ${points[0].y}`,
+                buildSmoothSvgPath(points).slice(1),
+                `L ${points[points.length - 1].x} ${baselineY}`,
+                'Z'
+            ].join(' ');
+        }
+
+        function renderSummaryCards() {
+            const records = getFilteredRecords();
+            const summary = summarize(records);
+            const cards = [
+                {
+                    title: 'Selected Hires',
+                    value: summary.total,
+                    tone: 'from-slate-950 via-slate-800 to-slate-700',
+                    note: `${getSelectedMonthLabel()} / ${getBrandLabel()} / ${getPositionLabel()}`
+                },
+                {
+                    title: 'Still Active',
+                    value: summary.active,
+                    tone: 'from-teal-700 via-teal-600 to-cyan-500',
+                    note: summary.total ? `${Math.round((summary.active / summary.total) * 100)}% of selected hires` : '0% of selected hires'
+                },
+                {
+                    title: 'Left Cases',
+                    value: summary.left,
+                    tone: 'from-orange-600 via-orange-500 to-amber-400',
+                    note: summary.total ? `${Math.round((summary.left / summary.total) * 100)}% with term date` : '0% with term date'
+                },
+                {
+                    title: 'Avg Stay',
+                    value: `${summary.avgStay} days`,
+                    tone: 'from-blue-700 via-indigo-600 to-sky-500',
+                    note: summary.left ? 'Average stay of all left cases' : 'Waiting for left-case history'
+                }
+            ];
+
+            document.getElementById('summaryCards').innerHTML = cards.map(card => `
+                <div class="glass-card overflow-hidden">
+                    <div class="bg-gradient-to-br ${card.tone} px-5 py-5 text-white">
+                        <div class="text-xs font-black uppercase tracking-[0.16em] text-white/70">${card.title}</div>
+                        <div class="mt-3 text-4xl font-black data-font">${card.value}</div>
+                        <div class="mt-2 text-sm font-bold text-white/82">${card.note}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderOverviewTable() {
+            const rows = buildOverviewRows();
+            const legend = document.getElementById('overviewLegend');
+            const chart = document.getElementById('overviewChart');
+            const empty = document.getElementById('overviewChartEmpty');
+            const months = getSelectedMonthKeys();
+            const series = getOverviewSeries(rows);
+
+            document.getElementById('overviewMeta').textContent = `${months.length} months / ${series.length} lines`;
+
+            if (!rows.length || !series.length) {
+                legend.innerHTML = '';
+                chart.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+
+            legend.innerHTML = series.map(item => {
+                const lastValue = item.values[item.values.length - 1] ?? 0;
+                return `
+                    <div class="chart-legend-button">
+                        <div class="flex items-center gap-3">
+                            <span class="chart-legend-line" style="background:${item.color}; opacity:${item.dash ? '0.82' : '1'}"></span>
+                            <div class="text-sm font-black text-slate-900">${item.label}</div>
+                        </div>
+                        <div class="mt-3 flex items-end justify-between gap-3">
+                            <div class="text-3xl font-black data-font text-slate-900">${lastValue}</div>
+                            <div class="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Latest</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const width = Math.max(760, months.length * 130);
+            const height = 360;
+            const padding = { top: 24, right: 28, bottom: 52, left: 56 };
+            const innerWidth = width - padding.left - padding.right;
+            const innerHeight = height - padding.top - padding.bottom;
+            const maxValue = Math.max(1, ...series.flatMap(item => item.values));
+            const yMax = maxValue <= 5 ? 5 : Math.ceil(maxValue / 5) * 5;
+            const ySteps = 5;
+            const xStep = months.length > 1 ? innerWidth / (months.length - 1) : 0;
+            const baselineY = padding.top + innerHeight;
+            const yForValue = value => padding.top + innerHeight - ((value / yMax) * innerHeight);
+            const xForIndex = index => padding.left + (months.length > 1 ? index * xStep : innerWidth / 2);
+            const denseMode = series.length > 4;
+
+            const gridLines = Array.from({ length: ySteps + 1 }, (_, index) => {
+                const value = Math.round((yMax / ySteps) * index);
+                const y = yForValue(value);
+                return `
+                    <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(148,163,184,0.16)" stroke-width="1" />
+                    <text x="${padding.left - 12}" y="${y + 4}" text-anchor="end" font-size="11" font-weight="800" fill="#64748b">${value}</text>
+                `;
+            }).join('');
+
+            const xLabels = months.map((monthKey, index) => `
+                <text x="${xForIndex(index)}" y="${height - 18}" text-anchor="middle" font-size="12" font-weight="800" fill="#475569">${formatMonth(monthKey)}</text>
+            `).join('');
+
+            const seriesMarkup = series.map((item, itemIndex) => {
+                const points = item.values.map((value, index) => ({
+                    x: xForIndex(index),
+                    y: yForValue(value),
+                    value
+                }));
+                const linePath = buildSmoothSvgPath(points);
+                const showArea = itemIndex === 0 && !item.dash;
+                const areaPath = showArea ? buildAreaSvgPath(points, baselineY) : '';
+                const lastPoint = points[points.length - 1];
+                const dots = points.map((point, index) => `
+                    <circle cx="${point.x}" cy="${point.y}" r="${index === points.length - 1 ? '5.5' : '4'}" fill="${item.color}" stroke="#ffffff" stroke-width="2.5" />
+                `).join('');
+                const labels = denseMode
+                    ? `<text x="${lastPoint.x + 10}" y="${lastPoint.y + 4}" font-size="11" font-weight="900" fill="${item.color}">${item.label} ${lastPoint.value}</text>`
+                    : points.map(point => `
+                        <text x="${point.x}" y="${point.y - 12}" text-anchor="middle" font-size="10.5" font-weight="800" fill="${item.color}">${point.value}</text>
+                    `).join('');
+
+                return `
+                    ${showArea ? `<path d="${areaPath}" fill="rgba(15,23,42,0.06)"></path>` : ''}
+                    <path d="${linePath}" fill="none" stroke="${item.color}" stroke-width="${denseMode ? '3.4' : '4'}" stroke-dasharray="${item.dash || ''}" stroke-linecap="round" stroke-linejoin="round"></path>
+                    ${dots}
+                    ${labels}
+                `;
+            }).join('');
+
+            chart.innerHTML = `
+                <svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="Monthly review line chart">
+                    <rect x="0" y="0" width="${width}" height="${height}" rx="22" fill="transparent"></rect>
+                    ${gridLines}
+                    <line x1="${padding.left}" y1="${baselineY}" x2="${width - padding.right}" y2="${baselineY}" stroke="rgba(15,23,42,0.22)" stroke-width="1.5" />
+                    ${xLabels}
+                    ${seriesMarkup}
+                </svg>
+            `;
+        }
+
+        function renderPositionFilters() {
+            const container = document.getElementById('positionFilters');
+            if (!container) return;
+            container.innerHTML = '';
+            [
+                { key: 'ALL', label: '全部' },
+                { key: 'BS', label: 'BS' },
+                { key: 'OTHER', label: '其他' }
+            ].forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedPosition === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => {
+                    selectedPosition = item.key;
+                    renderAll();
+                };
+                container.appendChild(button);
+            });
+        }
+
+        function renderDetailPositionFilters() {
+            const container = document.getElementById('detailPositionFilters');
+            if (!container) return;
+            container.innerHTML = '';
+            [
+                { key: 'ALL', label: '全部' },
+                { key: 'BS', label: 'BS' },
+                { key: 'OTHER', label: '其他' }
+            ].forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedPosition === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => {
+                    selectedPosition = item.key;
+                    renderAll();
+                };
+                container.appendChild(button);
+            });
+        }
+
+        function renderDetailStayFilters() {
+            const container = document.getElementById('detailStayFilters');
+            if (!container) return;
+            const items = [
+                { key: 'ALL', label: '全部' },
+                { key: 'active', label: 'Still Active' },
+                ...BUCKETS.map(bucket => ({ key: bucket.id, label: bucket.label }))
+            ];
+            container.innerHTML = '';
+            items.forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedDetailBucket === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => setDetailBucketFilter(item.key);
+                container.appendChild(button);
+            });
+        }
+
+        function renderDetailSalesFilters() {
+            const container = document.getElementById('detailSalesFilters');
+            if (!container) return;
+            const items = [
+                { key: 'all', label: '全部' },
+                { key: 'positive', label: 'Sales > 0' },
+                { key: 'zero', label: 'Sales 0 / -' }
+            ];
+            container.innerHTML = '';
+            items.forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedSalesFilter === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => setDetailSalesFilter(item.key);
+                container.appendChild(button);
+            });
+        }
+
+        function renderDetailRealizedFilters() {
+            const container = document.getElementById('detailRealizedFilters');
+            if (!container) return;
+            const items = [
+                { key: 'all', label: '全部' },
+                { key: 'positive', label: 'Realized > 0' },
+                { key: 'zero', label: 'Realized 0 / -' }
+            ];
+            container.innerHTML = '';
+            items.forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedRealizedFilter === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => setDetailRealizedFilter(item.key);
+                container.appendChild(button);
+            });
+        }
+
+        function renderBrandPerformancePositionFilters() {
+            const container = document.getElementById('brandPerformancePositionFilters');
+            if (!container) return;
+            container.innerHTML = '';
+            [
+                { key: 'ALL', label: '全部' },
+                { key: 'BS', label: 'BS' },
+                { key: 'OTHER', label: '其他' }
+            ].forEach(item => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedPosition === item.key ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => {
+                    selectedPosition = item.key;
+                    renderAll();
+                };
+                container.appendChild(button);
+            });
+        }
+
+        function applyVisualPolish() {
+            document.title = '2026 Staff In/Out Study Dashboard';
+
+            const header = document.querySelector('header.glass-card');
+            if (header) {
+                const title = header.querySelector('h1');
+                const intro = header.querySelector('p');
+                const actions = header.querySelectorAll('a');
+                const snapshotCard = header.querySelector('.rounded-3xl.bg-slate-900');
+                const refreshCard = header.querySelector('button[onclick="init()"]');
+
+                if (title) title.textContent = '2026 Brand 新人返工 / 離職分析';
+                if (intro) intro.innerHTML = '以 <span class="text-teal-700">Sheet6</span> 作為新人名單，按返工月份、品牌、Position 同 stay days bucket 去做 review；有 Term Date 會歸入離職分類，冇 Term Date 會自動當成 <span class="text-teal-700">Still Active</span>。';
+                if (actions[0]) {
+                    actions[0].textContent = '返回 Dashboard';
+                    actions[0].classList.add('header-action');
+                }
+                if (actions[1]) {
+                    actions[1].textContent = '打開 Sheet6 Source';
+                    actions[1].classList.add('header-action');
+                }
+                if (snapshotCard) {
+                    const copy = snapshotCard.querySelector('.mt-2.text-sm');
+                    if (copy) copy.textContent = 'Current review snapshot date';
+                }
+                if (refreshCard) {
+                    const headline = refreshCard.querySelector('.mt-3.text-2xl');
+                    if (headline) headline.textContent = 'Reload latest sheet data';
+                }
+            }
+
+            const detailSection = document.getElementById('detailSection');
+            if (detailSection) {
+                detailSection.classList.add('sticky-controls');
+                const title = detailSection.querySelector('h2');
+                const intro = title?.parentElement?.querySelector('p');
+                const topRow = detailSection.querySelector('.space-y-4');
+                const note = detailSection.querySelector('.rounded-2xl.bg-amber-50');
+                const badge = detailSection.querySelector('.rounded-2xl.bg-slate-100');
+                const labelNodes = detailSection.querySelectorAll('.mb-2.text-\\[11px\\]');
+
+                if (title) {
+                    title.textContent = '篩選與口徑';
+                    title.classList.add('mt-4');
+                    if (!title.parentElement.querySelector('.section-kicker')) {
+                        const kicker = document.createElement('div');
+                        kicker.className = 'section-kicker';
+                        kicker.textContent = 'Control Panel';
+                        title.parentElement.insertBefore(kicker, title);
+                    }
+                }
+                if (intro) intro.textContent = 'Category 口徑：只有 Term Date 個案會進入離職 bucket；冇 Term Date 會列作 Still Active。';
+                if (note) {
+                    note.classList.remove('bg-amber-50', 'ring-1', 'ring-amber-100', 'text-amber-900');
+                    note.classList.add('soft-note');
+                    note.textContent = '目前統計以返工日為月份歸屬，並按品牌 `p_dept` 分組。';
+                }
+                if (badge) badge.textContent = 'Click staff alias to inspect current term / active status';
+                if (topRow) {
+                    topRow.classList.remove('space-y-4');
+                    topRow.classList.add('filter-cluster');
+
+                    const monthBlock = document.getElementById('monthFilters')?.parentElement;
+                    const brandBlock = document.getElementById('brandFilters')?.parentElement;
+                    const positionBlock = document.getElementById('positionFilters')?.parentElement;
+                    [monthBlock, brandBlock, positionBlock].forEach(block => block?.classList.add('soft-panel'));
+
+                    if (monthBlock && brandBlock && !topRow.querySelector('.filter-group-grid')) {
+                        const grid = document.createElement('div');
+                        grid.className = 'filter-group-grid';
+                        topRow.insertBefore(grid, monthBlock);
+                        grid.appendChild(monthBlock);
+                        grid.appendChild(brandBlock);
+                    }
+                    if (positionBlock && positionBlock.parentElement !== topRow) {
+                        topRow.appendChild(positionBlock);
+                    }
+                }
+                const cleanLabels = ['Stay Bucket', 'Sort By', 'Position', 'Sales', 'Realized'];
+                labelNodes.forEach((node, index) => {
+                    if (cleanLabels[index]) node.textContent = cleanLabels[index];
+                });
+            }
+
+            const brandSnapshotSection = document.querySelector('section.space-y-4');
+            if (brandSnapshotSection) {
+                const subtitle = brandSnapshotSection.querySelector('p');
+                const h3s = brandSnapshotSection.querySelectorAll('h3');
+                if (subtitle) subtitle.textContent = '先睇返工人數，再睇各品牌離職個案留任分佈。';
+                if (h3s[0]) h3s[0].textContent = '全部品牌返工人數比例';
+                if (h3s[1]) h3s[1].textContent = '全部品牌離職分類比例';
+            }
+
+            document.getElementById('loadingStatus')?.replaceChildren(document.createTextNode('Loading Sheet6 and Sales data...'));
+        }
+
+        function renderAll() {
+            normalizeCopyDeck();
+            renderMonthFilters();
+            renderBrandFilters();
+            renderPositionFilters();
+            renderOverviewBrandFilters();
+            renderDetailStayFilters();
+            renderDetailSortFilters();
+            renderDetailPositionFilters();
+            renderDetailSalesFilters();
+            renderDetailRealizedFilters();
+            renderSummaryCards();
+            renderBrandPieChart();
+            renderBucketPieChart();
+            renderBrandCards();
+            renderBrandPerformanceSection();
+            renderOverviewTable();
+            renderProductivitySection();
+            renderDetailTable();
+            ensurePublicSafePresentation();
+            applyVisualPolish();
+        }
+
+        function ensureSectionKicker(section, text) {
+            if (!section) return;
+            const headerBlock = section.querySelector('h2')?.parentElement;
+            if (!headerBlock) return;
+            let kicker = headerBlock.querySelector('.section-kicker');
+            if (!kicker) {
+                kicker = document.createElement('div');
+                kicker.className = 'section-kicker';
+                headerBlock.insertBefore(kicker, headerBlock.querySelector('h2'));
+            }
+            kicker.textContent = text;
+        }
+
+        function renderSummaryCards() {
+            const records = getFilteredRecords();
+            const summary = summarize(records);
+            const cards = [
+                {
+                    title: 'Selected Hires',
+                    value: summary.total,
+                    accent: '#0f172a',
+                    badge: getBrandLabel(),
+                    note: `${getSelectedMonthLabel()} / ${getPositionLabel()}`
+                },
+                {
+                    title: 'Still Active',
+                    value: summary.active,
+                    accent: '#0f766e',
+                    badge: 'Active',
+                    note: summary.total ? `${Math.round((summary.active / summary.total) * 100)}% of selected hires` : 'No active staff under current filters'
+                },
+                {
+                    title: 'Left Cases',
+                    value: summary.left,
+                    accent: '#c2410c',
+                    badge: 'Left',
+                    note: summary.total ? `${Math.round((summary.left / summary.total) * 100)}% with term date` : 'No left cases under current filters'
+                },
+                {
+                    title: 'Avg Stay',
+                    value: `${summary.avgStay}d`,
+                    accent: '#1d4ed8',
+                    badge: 'Tenure',
+                    note: summary.left ? 'Average stay days of all left cases' : 'Waiting for term-date history'
+                }
+            ];
+
+            document.getElementById('summaryCards').innerHTML = cards.map(card => `
+                <div class="glass-card executive-summary-card p-5" style="--summary-accent:${card.accent}">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">${card.title}</div>
+                        <div class="executive-summary-badge">${card.badge}</div>
+                    </div>
+                    <div class="mt-5 text-4xl font-black data-font text-slate-900">${card.value}</div>
+                    <div class="mt-3 executive-note">${card.note}</div>
+                </div>
+            `).join('');
+        }
+
+        function applyVisualPolish() {
+            document.title = '2026 New Hire In/Out Executive Review';
+            document.body.classList.add('executive-mode');
+
+            const header = document.querySelector('header.glass-card');
+            if (header) {
+                header.classList.add('executive-hero');
+                const badge = header.querySelector('.inline-flex.rounded-full');
+                const title = header.querySelector('h1');
+                const intro = header.querySelector('p');
+                const actions = header.querySelectorAll('a');
+                const snapshotCard = header.querySelector('.rounded-3xl.bg-slate-900');
+                const refreshCard = header.querySelector('button[onclick="init()"]');
+
+                if (badge) badge.textContent = 'Executive Dashboard';
+                if (title) title.textContent = '2026 新人 In / Out Executive Review';
+                if (intro) intro.innerHTML = '以 <span class="text-teal-700">Sheet6</span> 新人名單為基礎，按返工月份、品牌、Position 與留任日數 bucket 做管理層 review；有 Term Date 歸入離職分析，冇 Term Date 自動列為 <span class="text-teal-700">Still Active</span>。';
+                if (actions[0]) actions[0].textContent = 'Dashboard';
+                if (actions[1]) actions[1].textContent = 'Sheet Source';
+                if (snapshotCard) {
+                    const label = snapshotCard.querySelector('.text-xs');
+                    const note = snapshotCard.querySelector('.mt-2.text-sm');
+                    if (label) label.textContent = 'As of Date';
+                    if (note) note.textContent = 'Current reporting cut-off';
+                }
+                if (refreshCard) {
+                    const label = refreshCard.querySelector('.text-xs');
+                    const headline = refreshCard.querySelector('.mt-3.text-2xl');
+                    const note = refreshCard.querySelector('#refreshMeta');
+                    if (label) label.textContent = 'Refresh';
+                    if (headline) headline.textContent = 'Reload live source';
+                    if (note && /蝑|頛/.test(note.textContent || '')) note.textContent = 'Waiting for refresh...';
+                }
+            }
+
+            const filterSection = document.getElementById('detailSection');
+            if (filterSection) {
+                ensureSectionKicker(filterSection, 'Filter Setup');
+                const title = filterSection.querySelector('h2');
+                const intro = title?.parentElement?.querySelector('p');
+                const note = filterSection.querySelector('.soft-note, .rounded-2xl.bg-amber-50');
+                if (title) title.textContent = '篩選與分析口徑';
+                if (intro) intro.textContent = '管理層口徑：有 Term Date 個案先進入離職 bucket；冇 Term Date 則列作 Still Active。';
+                if (note) {
+                    note.classList.add('soft-note');
+                    note.textContent = '目前以返工日作月份歸屬，並按品牌 p_dept 分組。';
+                }
+            }
+
+            const brandSnapshotSection = document.getElementById('brandCards')?.closest('section');
+            if (brandSnapshotSection) {
+                ensureSectionKicker(brandSnapshotSection, 'Brand Snapshot');
+                const heading = brandSnapshotSection.querySelector('h2');
+                const subtitle = brandSnapshotSection.querySelector('p');
+                const h3s = brandSnapshotSection.querySelectorAll('h3');
+                if (heading) heading.textContent = 'Brand Snapshot';
+                if (subtitle) subtitle.textContent = '先看品牌返工人數，再看離職個案在不同留任 bucket 的分佈。';
+                if (h3s[0]) h3s[0].textContent = 'All Brands On-board Mix';
+                if (h3s[1]) h3s[1].textContent = 'All Brands Exit Bucket Mix';
+            }
+
+            const performanceSection = document.getElementById('brandPerformanceMeta')?.closest('section');
+            if (performanceSection) {
+                ensureSectionKicker(performanceSection, 'Performance Review');
+                const heading = performanceSection.querySelector('h2');
+                if (heading) heading.textContent = 'By Brand Performance Review';
+            }
+
+            const overviewSection = document.getElementById('overviewMeta')?.closest('section');
+            if (overviewSection) {
+                ensureSectionKicker(overviewSection, 'Trend Review');
+                const heading = overviewSection.querySelector('h2');
+                const subtitle = overviewSection.querySelector('p');
+                if (heading) heading.textContent = 'Monthly Review';
+                if (subtitle) subtitle.textContent = '預設先看整體 IN / OUT 走勢；如需品牌比較，可於右側選擇一個或多個品牌疊加。';
+            }
+
+            const productivitySection = document.getElementById('productivityMeta')?.closest('section');
+            if (productivitySection) {
+                ensureSectionKicker(productivitySection, 'Productivity');
+                const heading = productivitySection.querySelector('h2');
+                const subtitle = productivitySection.querySelector('p');
+                if (heading) heading.textContent = 'Productivity Review';
+                if (subtitle) subtitle.textContent = '按目前篩選的新人對應 Sales sheet，評估 Sales / Realized Sales / ACB 的月度生產力表現。';
+            }
+
+            const detailReviewSection = document.getElementById('detailSummary')?.closest('section');
+            if (detailReviewSection) {
+                ensureSectionKicker(detailReviewSection, 'Detail Review');
+                const badge = detailReviewSection.querySelector('.rounded-2xl.bg-slate-100');
+                if (badge) badge.textContent = 'Alias shown for sharing / Staff ID kept for internal follow-up';
+            }
+
+            const filterLabels = [
+                { id: 'detailStayFilters', label: 'Stay Bucket' },
+                { id: 'detailSortFilters', label: 'Sort By' },
+                { id: 'detailPositionFilters', label: 'Position' },
+                { id: 'detailSalesFilters', label: 'Sales' },
+                { id: 'detailRealizedFilters', label: 'Realized' }
+            ];
+            filterLabels.forEach(item => {
+                const block = document.getElementById(item.id)?.parentElement;
+                const label = block?.querySelector('.mb-2.text-\\[11px\\]');
+                if (label) label.textContent = item.label;
+            });
+
+            document.getElementById('loadingStatus')?.replaceChildren(document.createTextNode('Loading Sheet6 and Sales data...'));
+        }
+
+        function renderAll() {
+            normalizeCopyDeck();
+            renderMonthFilters();
+            renderBrandFilters();
+            renderPositionFilters();
+            renderOverviewBrandFilters();
+            renderDetailStayFilters();
+            renderDetailSortFilters();
+            renderDetailPositionFilters();
+            renderDetailSalesFilters();
+            renderDetailRealizedFilters();
+            renderSummaryCards();
+            renderBrandPieChart();
+            renderBucketPieChart();
+            renderBrandCards();
+            renderBrandPerformanceSection();
+            renderOverviewTable();
+            renderProductivitySection();
+            renderDetailTable();
+            ensurePublicSafePresentation();
+            applyVisualPolish();
         }
 
         async function init() {
