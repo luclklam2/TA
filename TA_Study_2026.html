@@ -381,6 +381,33 @@
         </section>
 
         <section class="glass-card p-6 md:p-7">
+            <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900">Productivity Review</h2>
+                    <p class="mt-2 text-sm font-bold text-slate-500">用 Sales sheet 按 Staff ID 對返目前篩選嘅新人，再按 Report Month 睇 Sales / Realized Sales / ACB 表現。</p>
+                </div>
+                <div class="flex flex-col gap-3 md:items-end">
+                    <div id="productivityMeta" class="text-sm font-black text-slate-500"></div>
+                    <div>
+                        <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Metric</div>
+                        <div id="productivityMetricFilters" class="flex flex-wrap gap-2 md:justify-end"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)] mt-6">
+                <div id="productivityCards" class="grid gap-3"></div>
+                <div class="chart-shell">
+                    <div id="productivityChartEmpty" class="hidden px-6 py-16 text-center text-sm font-black text-slate-400">
+                        目前篩選未有 Sales 資料。
+                    </div>
+                    <div class="overflow-x-auto">
+                        <div id="productivityChart" class="min-w-[720px]"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-card p-6 md:p-7">
             <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                 <div>
                     <h2 class="text-2xl font-black text-slate-900">Selected Detail</h2>
@@ -408,6 +435,9 @@
                             <th>Term Date</th>
                     <th>Status</th>
                     <th>Stay Days</th>
+                    <th>Sales</th>
+                    <th>Realized Sales</th>
+                    <th>ACB</th>
                     <th>Bucket</th>
                         </tr>
                     </thead>
@@ -419,8 +449,8 @@
 
     <script>
         const SHEET_DOC_ID = '1zCIR7C66000DR0ibzwG9p3u2iH0GSHRGLdY7C-zK38I';
-        const SHEET_NAME = 'Sheet6';
-        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_DOC_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+        const SHEET6_NAME = 'Sheet6';
+        const SALES_SHEET_NAME = 'Sales';
         const BUCKETS = [
             { id: 'b1', label: '1-2日', max: 2, chip: 'bg-rose-100 text-rose-700', segment: 'segment-b1' },
             { id: 'b2', label: '3-14日', max: 14, chip: 'bg-orange-100 text-orange-700', segment: 'segment-b2' },
@@ -448,8 +478,14 @@
             active: '#0f766e',
             out: '#ea580c'
         };
+        const PRODUCTIVITY_METRICS = {
+            sales: { label: 'Sales', color: '#0f766e' },
+            realized: { label: 'Realized Sales', color: '#f97316' },
+            acb: { label: 'ACB', color: '#2563eb' }
+        };
 
         let allRecords = [];
+        let salesRecords = [];
         let monthKeys = [];
         let brands = [];
         let selectedMonths = ['ALL'];
@@ -457,6 +493,8 @@
         let selectedOverviewBrands = ['ALL'];
         let selectedDetailBucket = 'ALL';
         let selectedDetailSort = 'joinDate';
+        let selectedProductivityMetric = 'sales';
+        let salesLookup = new Map();
         let lastLoadedAt = null;
 
         function parseDate(value) {
@@ -466,6 +504,13 @@
             if (!dd || !mm || !yyyy) return null;
             const parsed = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
             return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function parseNumber(value) {
+            const cleaned = String(value ?? '').trim().replace(/,/g, '');
+            if (!cleaned || cleaned === '-') return 0;
+            const parsed = Number(cleaned.replace(/%/g, ''));
+            return Number.isFinite(parsed) ? parsed : 0;
         }
 
         function getAsOfDate() {
@@ -485,6 +530,21 @@
 
         function formatDate(date) {
             return date ? date.toLocaleDateString('en-GB') : '-';
+        }
+
+        function formatNumber(value) {
+            return Math.round(value || 0).toLocaleString('en-US');
+        }
+
+        function formatCompactMetricValue(metricKey, value) {
+            const rounded = Math.round(value || 0);
+            if (rounded >= 1000) {
+                return new Intl.NumberFormat('en-US', {
+                    notation: 'compact',
+                    maximumFractionDigits: 1
+                }).format(rounded);
+            }
+            return metricKey === 'acb' ? rounded.toString() : formatNumber(rounded);
         }
 
         function formatMonth(monthKey) {
@@ -546,9 +606,11 @@
             const stayDays = termDate ? daysBetween(jobDate, termDate) : null;
             const bucket = termDate ? getBucketByDays(stayDays) : null;
             const brand = (row.p_dept || 'UNKNOWN').trim().toUpperCase();
+            const staffId = String(row.p_empno || '').trim();
 
             return {
                 brand,
+                staffId,
                 name: (row.p_name || row.p_cname || '').trim() || '-',
                 jobDate,
                 termDate,
@@ -556,8 +618,87 @@
                 stayDays,
                 bucketId: bucket ? bucket.id : 'active',
                 bucketLabel: bucket ? bucket.label : 'Still Active',
-                monthKey: `${jobDate.getFullYear()}-${String(jobDate.getMonth() + 1).padStart(2, '0')}`
+                monthKey: `${jobDate.getFullYear()}-${String(jobDate.getMonth() + 1).padStart(2, '0')}`,
+                salesTotal: 0,
+                realizedTotal: 0,
+                acbAverage: 0,
+                salesMonthCount: 0
             };
+        }
+
+        function buildSalesRecord(row) {
+            const reportYear = Number(String(row['Report Year'] || '').trim());
+            const reportMonth = Number(String(row['Report Month'] || '').trim());
+            const staffId = String(row['Therapist Staff No'] || '').trim();
+            if (!staffId || reportYear !== 2026 || !reportMonth) return null;
+
+            return {
+                staffId,
+                monthKey: `${reportYear}-${String(reportMonth).padStart(2, '0')}`,
+                brand: String(row['Brand'] || '').trim().toUpperCase(),
+                sales: parseNumber(row['Actual Sales (Daily)']),
+                realized: parseNumber(row['Max. Realized Sales (Curr. Month End)']),
+                acb: parseNumber(row['Avg. ACB (Curr. Month End)'])
+            };
+        }
+
+        function buildSalesLookup(records) {
+            const lookup = new Map();
+
+            records.forEach(record => {
+                if (!lookup.has(record.staffId)) {
+                    lookup.set(record.staffId, {
+                        totalSales: 0,
+                        totalRealized: 0,
+                        acbTotal: 0,
+                        acbCount: 0,
+                        monthCount: 0,
+                        months: {}
+                    });
+                }
+
+                const summary = lookup.get(record.staffId);
+                summary.totalSales += record.sales;
+                summary.totalRealized += record.realized;
+                summary.acbTotal += record.acb;
+                summary.acbCount += 1;
+
+                if (!summary.months[record.monthKey]) {
+                    summary.months[record.monthKey] = {
+                        sales: 0,
+                        realized: 0,
+                        acbTotal: 0,
+                        acbCount: 0
+                    };
+                    summary.monthCount += 1;
+                }
+
+                summary.months[record.monthKey].sales += record.sales;
+                summary.months[record.monthKey].realized += record.realized;
+                summary.months[record.monthKey].acbTotal += record.acb;
+                summary.months[record.monthKey].acbCount += 1;
+            });
+
+            lookup.forEach(summary => {
+                summary.avgAcb = summary.acbCount ? Math.round(summary.acbTotal / summary.acbCount) : 0;
+            });
+
+            return lookup;
+        }
+
+        function enrichRecordsWithSales(records) {
+            return records.map(record => {
+                const salesSummary = salesLookup.get(record.staffId);
+                if (!salesSummary) return record;
+
+                return {
+                    ...record,
+                    salesTotal: salesSummary.totalSales,
+                    realizedTotal: salesSummary.totalRealized,
+                    acbAverage: salesSummary.avgAcb,
+                    salesMonthCount: salesSummary.monthCount
+                };
+            });
         }
 
         function getFilteredRecords() {
@@ -581,6 +722,7 @@
         function setDetailBucketFilter(bucketId) {
             selectedDetailBucket = selectedDetailBucket === bucketId ? 'ALL' : bucketId;
             renderDetailStayFilters();
+            renderProductivitySection();
             renderDetailTable();
             document.getElementById('detailSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             renderBucketPieChart();
@@ -753,6 +895,182 @@
                 button.onclick = () => setDetailSort(item.key);
                 container.appendChild(button);
             });
+        }
+
+        function setProductivityMetric(metricKey) {
+            selectedProductivityMetric = metricKey;
+            renderProductivityMetricFilters();
+            renderProductivitySection();
+        }
+
+        function renderProductivityMetricFilters() {
+            const container = document.getElementById('productivityMetricFilters');
+            if (!container) return;
+
+            container.innerHTML = '';
+            Object.entries(PRODUCTIVITY_METRICS).forEach(([key, metric]) => {
+                const button = document.createElement('button');
+                button.className = `filter-pill ${selectedProductivityMetric === key ? 'active' : ''}`;
+                button.textContent = metric.label;
+                button.onclick = () => setProductivityMetric(key);
+                container.appendChild(button);
+            });
+        }
+
+        function getProductivitySalesRecords() {
+            const selectedStaffIds = new Set(getDetailRecords().map(record => record.staffId).filter(Boolean));
+            return salesRecords.filter(record => selectedStaffIds.has(record.staffId));
+        }
+
+        function summarizeProductivity(records) {
+            const staffIds = new Set(records.map(record => record.staffId));
+            const summary = {
+                matchedStaff: staffIds.size,
+                sales: 0,
+                realized: 0,
+                acbTotal: 0,
+                acbCount: 0
+            };
+
+            records.forEach(record => {
+                summary.sales += record.sales;
+                summary.realized += record.realized;
+                summary.acbTotal += record.acb;
+                summary.acbCount += 1;
+            });
+
+            summary.acbAverage = summary.acbCount ? Math.round(summary.acbTotal / summary.acbCount) : 0;
+            return summary;
+        }
+
+        function getProductivityMonthlyRows(records) {
+            const grouped = new Map();
+
+            records.forEach(record => {
+                if (!grouped.has(record.monthKey)) {
+                    grouped.set(record.monthKey, {
+                        monthKey: record.monthKey,
+                        sales: 0,
+                        realized: 0,
+                        acbTotal: 0,
+                        acbCount: 0,
+                        staffIds: new Set()
+                    });
+                }
+
+                const row = grouped.get(record.monthKey);
+                row.sales += record.sales;
+                row.realized += record.realized;
+                row.acbTotal += record.acb;
+                row.acbCount += 1;
+                row.staffIds.add(record.staffId);
+            });
+
+            return [...grouped.values()]
+                .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
+                .map(row => ({
+                    monthKey: row.monthKey,
+                    sales: row.sales,
+                    realized: row.realized,
+                    acb: row.acbCount ? Math.round(row.acbTotal / row.acbCount) : 0,
+                    matchedStaff: row.staffIds.size
+                }));
+        }
+
+        function renderProductivitySection() {
+            const cards = document.getElementById('productivityCards');
+            const chart = document.getElementById('productivityChart');
+            const empty = document.getElementById('productivityChartEmpty');
+            const detailRecords = getDetailRecords();
+            const matchedSalesRecords = getProductivitySalesRecords();
+            const monthlyRows = getProductivityMonthlyRows(matchedSalesRecords);
+            const summary = summarizeProductivity(matchedSalesRecords);
+            const metric = PRODUCTIVITY_METRICS[selectedProductivityMetric];
+
+            renderProductivityMetricFilters();
+
+            document.getElementById('productivityMeta').textContent = `${summary.matchedStaff} matched staff / ${monthlyRows.length} sales months`;
+
+            cards.innerHTML = [
+                {
+                    label: 'Matched Staff',
+                    value: summary.matchedStaff,
+                    note: `${detailRecords.length} selected hires`
+                },
+                {
+                    label: 'Sales',
+                    value: formatNumber(summary.sales),
+                    note: 'Actual Sales (Daily)'
+                },
+                {
+                    label: 'Realized Sales',
+                    value: formatNumber(summary.realized),
+                    note: 'Max. Realized Sales'
+                },
+                {
+                    label: 'ACB',
+                    value: formatNumber(summary.acbAverage),
+                    note: 'Avg. ACB'
+                }
+            ].map(item => `
+                <div class="chart-legend-button">
+                    <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">${item.label}</div>
+                    <div class="mt-3 text-3xl font-black data-font text-slate-900">${item.value}</div>
+                    <div class="mt-2 text-sm font-bold text-slate-500">${item.note}</div>
+                </div>
+            `).join('');
+
+            if (!monthlyRows.length) {
+                chart.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+
+            const width = Math.max(720, monthlyRows.length * 120);
+            const height = 340;
+            const padding = { top: 20, right: 24, bottom: 56, left: 68 };
+            const innerWidth = width - padding.left - padding.right;
+            const innerHeight = height - padding.top - padding.bottom;
+            const values = monthlyRows.map(row => row[selectedProductivityMetric]);
+            const maxValue = Math.max(1, ...values);
+            const yMax = maxValue <= 5 ? 5 : Math.ceil(maxValue / 5) * 5;
+            const ySteps = 5;
+            const barWidth = Math.min(68, innerWidth / Math.max(1, monthlyRows.length * 1.4));
+            const gap = monthlyRows.length > 1 ? innerWidth / monthlyRows.length : 0;
+            const xForIndex = index => padding.left + gap * index + gap / 2;
+            const yForValue = value => padding.top + innerHeight - ((value / yMax) * innerHeight);
+
+            const gridLines = Array.from({ length: ySteps + 1 }, (_, index) => {
+                const value = Math.round((yMax / ySteps) * index);
+                const y = yForValue(value);
+                return `
+                    <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(148,163,184,0.22)" stroke-width="1" />
+                    <text x="${padding.left - 12}" y="${y + 4}" text-anchor="end" font-size="11" font-weight="800" fill="#64748b">${formatCompactMetricValue(selectedProductivityMetric, value)}</text>
+                `;
+            }).join('');
+
+            const bars = monthlyRows.map((row, index) => {
+                const value = row[selectedProductivityMetric];
+                const x = xForIndex(index) - (barWidth / 2);
+                const y = yForValue(value);
+                const h = Math.max(6, padding.top + innerHeight - y);
+                return `
+                    <rect x="${x}" y="${y}" width="${barWidth}" height="${h}" rx="14" fill="${metric.color}" fill-opacity="0.88"></rect>
+                    <text x="${xForIndex(index)}" y="${y - 10}" text-anchor="middle" font-size="11" font-weight="800" fill="${metric.color}">${formatCompactMetricValue(selectedProductivityMetric, value)}</text>
+                    <text x="${xForIndex(index)}" y="${height - 18}" text-anchor="middle" font-size="12" font-weight="800" fill="#475569">${formatMonth(row.monthKey)}</text>
+                `;
+            }).join('');
+
+            chart.innerHTML = `
+                <svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="Productivity review chart">
+                    <rect x="0" y="0" width="${width}" height="${height}" rx="20" fill="transparent"></rect>
+                    ${gridLines}
+                    <line x1="${padding.left}" y1="${padding.top + innerHeight}" x2="${width - padding.right}" y2="${padding.top + innerHeight}" stroke="rgba(15,23,42,0.22)" stroke-width="1.5"></line>
+                    ${bars}
+                </svg>
+            `;
         }
 
         function renderSummaryCards() {
@@ -1188,7 +1506,7 @@
             if (!records.length) {
                 body.innerHTML = `
                     <tr>
-                        <td colspan="7" class="px-6 py-10 text-center text-sm font-black text-slate-400">
+                        <td colspan="10" class="px-6 py-10 text-center text-sm font-black text-slate-400">
                             未有符合篩選的明細。
                         </td>
                     </tr>
@@ -1208,6 +1526,9 @@
                         </span>
                     </td>
                     <td class="data-font">${record.stayDays ?? '-'}</td>
+                    <td class="data-font">${record.salesMonthCount ? formatNumber(record.salesTotal) : '-'}</td>
+                    <td class="data-font">${record.salesMonthCount ? formatNumber(record.realizedTotal) : '-'}</td>
+                    <td class="data-font">${record.salesMonthCount ? formatNumber(record.acbAverage) : '-'}</td>
                     <td>
                         <span class="bucket-chip ${record.termDate ? (BUCKETS.find(bucket => bucket.id === record.bucketId)?.chip || 'bg-slate-100 text-slate-700') : 'bg-teal-100 text-teal-700'}">
                             ${record.bucketLabel}
@@ -1228,6 +1549,7 @@
             renderBucketPieChart();
             renderBrandCards();
             renderOverviewTable();
+            renderProductivitySection();
             renderDetailTable();
         }
 
@@ -1292,24 +1614,36 @@
             });
         }
 
-        async function fetchSheetText() {
+        async function fetchSheetText(sheetName) {
+            const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_DOC_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
             try {
-                const response = await fetch(`${SHEET_URL}&t=${Date.now()}`);
+                const response = await fetch(`${sheetUrl}&t=${Date.now()}`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return await response.text();
             } catch (_) {
-                return loadGvizCsvByJsonp(SHEET_NAME);
+                return loadGvizCsvByJsonp(sheetName);
             }
         }
 
         async function init() {
-            document.getElementById('loadingStatus').textContent = '正在讀取 Sheet6...';
+            document.getElementById('loadingStatus').textContent = '正在讀取 Sheet6 + Sales...';
             document.getElementById('loadingStatus').classList.remove('hidden');
 
             try {
-                const text = await fetchSheetText();
+                const [sheet6Text, salesText] = await Promise.all([
+                    fetchSheetText(SHEET6_NAME),
+                    fetchSheetText(SALES_SHEET_NAME)
+                ]);
                 const parsed = await new Promise((resolve, reject) => {
-                    Papa.parse(text, {
+                    Papa.parse(sheet6Text, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: resolve,
+                        error: reject
+                    });
+                });
+                const parsedSales = await new Promise((resolve, reject) => {
+                    Papa.parse(salesText, {
                         header: true,
                         skipEmptyLines: true,
                         complete: resolve,
@@ -1317,7 +1651,9 @@
                     });
                 });
 
-                allRecords = (parsed.data || []).map(buildRecord).filter(Boolean);
+                salesRecords = (parsedSales.data || []).map(buildSalesRecord).filter(Boolean);
+                salesLookup = buildSalesLookup(salesRecords);
+                allRecords = enrichRecordsWithSales((parsed.data || []).map(buildRecord).filter(Boolean));
                 monthKeys = [...new Set(allRecords.map(record => record.monthKey))].sort();
                 brands = [...new Set(allRecords.map(record => record.brand))].sort();
                 lastLoadedAt = new Date();
