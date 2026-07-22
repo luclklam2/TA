@@ -503,6 +503,39 @@
             color: #475569;
         }
 
+        .detail-brand-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.7rem;
+            align-items: center;
+        }
+
+        .detail-brand-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(203, 213, 225, 0.9);
+            background: rgba(255, 255, 255, 0.96);
+            padding: 0.45rem 0.85rem;
+            box-shadow: 0 8px 18px -16px rgba(15, 23, 42, 0.35);
+        }
+
+        .detail-brand-pill-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.9rem;
+            height: 1.9rem;
+            border-radius: 9999px;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 0 0.5rem;
+            font-size: 0.84rem;
+            font-weight: 900;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
         .executive-note {
             font-size: 0.78rem;
             font-weight: 800;
@@ -750,6 +783,10 @@
                 <div>
                     <h2 class="text-2xl font-black text-slate-900">Selected Detail</h2>
                     <p id="detailSummary" class="mt-2 text-sm font-bold text-slate-500"></p>
+                    <div class="mt-4">
+                        <div class="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">By Brand</div>
+                        <div id="detailBrandCounts" class="detail-brand-strip"></div>
+                    </div>
                 </div>
                 <div class="rounded-2xl bg-slate-100 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-slate-600">
                     點人名可以再喺表內搵返 term / active 情況
@@ -1620,6 +1657,43 @@
                     <div class="mt-2 text-sm font-bold text-slate-500">${item.note}</div>
                 </div>
             `).join('');
+        }
+
+        function renderDetailBrandCounts(records) {
+            const container = document.getElementById('detailBrandCounts');
+            if (!container) return;
+
+            const total = records.length;
+            const entries = brands.map(brand => ({
+                brand,
+                count: records.filter(record => record.brand === brand).length
+            })).filter(entry => entry.count > 0);
+
+            if (!total) {
+                container.innerHTML = `
+                    <div class="detail-brand-pill">
+                        <span class="font-black text-slate-500">No matched hires</span>
+                    </div>
+                `;
+                return;
+            }
+
+            const pills = [
+                `
+                    <div class="detail-brand-pill">
+                        <span class="font-black uppercase tracking-[0.14em] text-slate-400">Total</span>
+                        <span class="detail-brand-pill-count">${total}</span>
+                    </div>
+                `,
+                ...entries.map(entry => `
+                    <div class="detail-brand-pill">
+                        <span class="font-black text-slate-700">${entry.brand}</span>
+                        <span class="detail-brand-pill-count">${entry.count}</span>
+                    </div>
+                `)
+            ];
+
+            container.innerHTML = pills.join('');
         }
 
         function setProductivityMetric(metricKey) {
@@ -2783,6 +2857,7 @@
 
             document.getElementById('detailSummary').textContent = `Showing ${records.length} hires | Month: ${monthLabel} | Brand: ${brandLabel} | Position: ${positionLabel} | Stay Days: ${bucketLabel} | Sales: ${salesLabel} | Realized: ${realizedLabel} | Sort: ${getDetailSortLabel()} | No Term Date = Still Active`;
             renderDetailMetricCards(records);
+            renderDetailBrandCounts(records);
 
             if (!records.length) {
                 body.innerHTML = `
