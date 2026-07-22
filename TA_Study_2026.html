@@ -536,6 +536,85 @@
             font-family: 'Space Grotesk', sans-serif;
         }
 
+        .alert-card {
+            border-radius: 1.2rem;
+            border: 1px solid rgba(203, 213, 225, 0.82);
+            background: rgba(255, 255, 255, 0.96);
+            padding: 1rem 1.05rem;
+            box-shadow: 0 12px 24px -22px rgba(15, 23, 42, 0.35);
+        }
+
+        .alert-card-title {
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .alert-card-critical .alert-card-title { color: #b91c1c; }
+        .alert-card-watch .alert-card-title { color: #c2410c; }
+        .alert-card-opportunity .alert-card-title { color: #0f766e; }
+        .alert-card-followup .alert-card-title { color: #1d4ed8; }
+
+        .brand-kpi-grid {
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .brand-kpi-box {
+            border-radius: 1rem;
+            padding: 0.85rem 0.9rem;
+            background: rgba(248, 250, 252, 0.95);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+        }
+
+        .brand-kpi-box.net {
+            background: rgba(240, 253, 250, 0.95);
+            border-color: rgba(153, 246, 228, 0.9);
+        }
+
+        .brand-kpi-box.risk {
+            background: rgba(255, 247, 237, 0.95);
+            border-color: rgba(254, 215, 170, 0.9);
+        }
+
+        .cohort-card {
+            border-radius: 1.15rem;
+            border: 1px solid rgba(226, 232, 240, 0.92);
+            background: rgba(255, 255, 255, 0.96);
+            padding: 1rem;
+            box-shadow: 0 10px 22px -20px rgba(15, 23, 42, 0.28);
+        }
+
+        .cohort-stage-grid {
+            display: grid;
+            gap: 0.7rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .cohort-stage-box {
+            border-radius: 0.95rem;
+            border: 1px solid rgba(226, 232, 240, 0.92);
+            background: rgba(248, 250, 252, 0.95);
+            padding: 0.75rem 0.8rem;
+        }
+
+        .cohort-stage-box.stage-1 {
+            background: rgba(239, 246, 255, 0.95);
+            border-color: rgba(191, 219, 254, 0.95);
+        }
+
+        .cohort-stage-box.stage-2 {
+            background: rgba(240, 253, 250, 0.95);
+            border-color: rgba(153, 246, 228, 0.95);
+        }
+
+        .cohort-stage-box.stage-3 {
+            background: rgba(255, 247, 237, 0.95);
+            border-color: rgba(254, 215, 170, 0.95);
+        }
+
         .executive-note {
             font-size: 0.78rem;
             font-weight: 800;
@@ -614,7 +693,17 @@
             正在讀取 Sheet6...
         </section>
 
-        <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4" id="summaryCards"></section>
+        <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5" id="summaryCards"></section>
+
+        <section class="glass-card p-6 md:p-7" id="keyAlertsSection">
+            <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900">Key Alerts</h2>
+                    <p class="mt-2 text-sm font-bold text-slate-500">管理層快速睇高風險、高流失同高潛力品牌。</p>
+                </div>
+            </div>
+            <div id="keyAlertsGrid" class="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-4"></div>
+        </section>
 
         <section id="detailSection" class="glass-card p-6 md:p-7">
             <div class="flex flex-col gap-6">
@@ -3643,6 +3732,11 @@
                 if (subtitle) subtitle.textContent = '按目前篩選的新人對應 Sales sheet，評估 Sales / Realized Sales / ACB 的月度生產力表現。';
             }
 
+            const cohortSection = document.getElementById('cohortProgressionSection');
+            if (cohortSection) {
+                ensureSectionKicker(cohortSection, 'Ramp-up Review');
+            }
+
             const detailReviewSection = document.getElementById('detailSummary')?.closest('section');
             if (detailReviewSection) {
                 ensureSectionKicker(detailReviewSection, 'Detail Review');
@@ -3678,6 +3772,541 @@
             renderDetailSalesFilters();
             renderDetailRealizedFilters();
             renderSummaryCards();
+            renderBrandPieChart();
+            renderBucketPieChart();
+            renderBrandCards();
+            renderBrandPerformanceSection();
+            renderOverviewTable();
+            renderProductivitySection();
+            renderCohortProgressionSection();
+            renderDetailTable();
+            ensurePublicSafePresentation();
+            applyVisualPolish();
+        }
+
+        function getEarlyLossCount(records) {
+            return records.filter(record => record.termDate && (record.stayDays ?? Number.POSITIVE_INFINITY) <= 30).length;
+        }
+
+        function getEarlyLossRate(records) {
+            return records.length ? Math.round((getEarlyLossCount(records) / records.length) * 100) : 0;
+        }
+
+        function getAverageHireSales(records) {
+            const matched = records.filter(record => record.salesMonthCount && record.salesAverage > 0);
+            return matched.length
+                ? Math.round(matched.reduce((sum, record) => sum + record.salesAverage, 0) / matched.length)
+                : 0;
+        }
+
+        function addMonthOffset(monthKey, offset) {
+            const [yearText, monthText] = String(monthKey || '').split('-');
+            const year = Number(yearText);
+            const month = Number(monthText);
+            if (!year || !month) return '';
+            const date = new Date(year, month - 1 + offset, 1);
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function getLatestSalesMonthKey() {
+            const keys = [...new Set(salesRecords.map(record => record.monthKey).filter(Boolean))].sort();
+            return keys[keys.length - 1] || '';
+        }
+
+        function getCohortProgressionRows(records) {
+            const latestSalesMonthKey = getLatestSalesMonthKey();
+            const grouped = new Map();
+
+            records.forEach(record => {
+                if (!record.staffId || !record.monthKey) return;
+                const joinMonthKey = record.monthKey;
+                const salesSummary = salesLookup.get(record.staffId);
+                if (!salesSummary) return;
+
+                if (!grouped.has(joinMonthKey)) {
+                    grouped.set(joinMonthKey, {
+                        joinMonthKey,
+                        hires: 0,
+                        stage1Sales: 0,
+                        stage2Sales: 0,
+                        stage3Sales: 0,
+                        stage1Count: 0,
+                        stage2Count: 0,
+                        stage3Count: 0
+                    });
+                }
+
+                const row = grouped.get(joinMonthKey);
+                row.hires += 1;
+
+                [0, 1, 2].forEach(offset => {
+                    const targetMonthKey = addMonthOffset(joinMonthKey, offset);
+                    if (!targetMonthKey) return;
+                    if (latestSalesMonthKey && targetMonthKey > latestSalesMonthKey) return;
+                    const monthSales = salesSummary.months?.[targetMonthKey]?.sales || 0;
+                    const stageKey = `stage${offset + 1}`;
+                    row[`${stageKey}Sales`] += monthSales;
+                    row[`${stageKey}Count`] += 1;
+                });
+            });
+
+            return [...grouped.values()]
+                .sort((a, b) => a.joinMonthKey.localeCompare(b.joinMonthKey))
+                .map(row => ({
+                    joinMonthKey: row.joinMonthKey,
+                    hires: row.hires,
+                    stage1Avg: row.stage1Count ? Math.round(row.stage1Sales / row.stage1Count) : 0,
+                    stage2Avg: row.stage2Count ? Math.round(row.stage2Sales / row.stage2Count) : 0,
+                    stage3Avg: row.stage3Count ? Math.round(row.stage3Sales / row.stage3Count) : 0,
+                    stage2Count: row.stage2Count,
+                    stage3Count: row.stage3Count
+                }));
+        }
+
+        function ensureCohortProgressionSection() {
+            if (document.getElementById('cohortProgressionSection')) return;
+            const productivitySection = document.getElementById('productivityMeta')?.closest('section');
+            if (!productivitySection) return;
+
+            const section = document.createElement('section');
+            section.id = 'cohortProgressionSection';
+            section.className = 'glass-card p-6 md:p-7';
+            section.innerHTML = `
+                <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-900">New Hire 3-Month Sales Progression</h2>
+                        <p class="mt-2 text-sm font-bold text-slate-500">按入職月份做 cohort，比較新人第 1 / 2 / 3 個月平均 Sales，睇返有冇進步。</p>
+                    </div>
+                    <div id="cohortProgressionMeta" class="text-sm font-black text-slate-500"></div>
+                </div>
+                <div class="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)] mt-6">
+                    <div id="cohortProgressionCards" class="grid gap-3"></div>
+                    <div class="chart-shell">
+                        <div id="cohortProgressionEmpty" class="hidden px-6 py-16 text-center text-sm font-black text-slate-400">
+                            No new-hire progression data under the current filters.
+                        </div>
+                        <div class="overflow-x-auto">
+                            <div id="cohortProgressionChart" class="min-w-[720px]"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            productivitySection.insertAdjacentElement('afterend', section);
+        }
+
+        function renderCohortProgressionSection() {
+            ensureCohortProgressionSection();
+            const section = document.getElementById('cohortProgressionSection');
+            const meta = document.getElementById('cohortProgressionMeta');
+            const cards = document.getElementById('cohortProgressionCards');
+            const chart = document.getElementById('cohortProgressionChart');
+            const empty = document.getElementById('cohortProgressionEmpty');
+            if (!section || !meta || !cards || !chart || !empty) return;
+
+            const cohortRows = getCohortProgressionRows(getFilteredRecords());
+            meta.textContent = `${cohortRows.length} cohorts / first 3 months sales`;
+
+            if (!cohortRows.length) {
+                cards.innerHTML = '';
+                chart.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+
+            const overallStage1 = Math.round(cohortRows.reduce((sum, row) => sum + row.stage1Avg, 0) / cohortRows.length);
+            const overallStage2 = Math.round(cohortRows.reduce((sum, row) => sum + row.stage2Avg, 0) / cohortRows.length);
+            const overallStage3 = Math.round(cohortRows.reduce((sum, row) => sum + row.stage3Avg, 0) / cohortRows.length);
+            const improvingCohorts = cohortRows.filter(row => row.stage3Avg > row.stage1Avg).length;
+
+            cards.innerHTML = [
+                {
+                    label: 'Month 1 Avg',
+                    value: formatRoundedK(overallStage1),
+                    note: 'Average Sales in first month'
+                },
+                {
+                    label: 'Month 2 Avg',
+                    value: formatRoundedK(overallStage2),
+                    note: 'Average Sales in second month'
+                },
+                {
+                    label: 'Month 3 Avg',
+                    value: formatRoundedK(overallStage3),
+                    note: 'Average Sales in third month'
+                },
+                {
+                    label: 'Improving Cohorts',
+                    value: `${improvingCohorts}/${cohortRows.length}`,
+                    note: 'Cohorts with Month 3 above Month 1'
+                }
+            ].map(item => `
+                <div class="chart-legend-button">
+                    <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">${item.label}</div>
+                    <div class="mt-3 text-3xl font-black data-font text-slate-900">${item.value}</div>
+                    <div class="mt-2 text-sm font-bold text-slate-500">${item.note}</div>
+                </div>
+            `).join('');
+
+            const width = Math.max(760, cohortRows.length * 128);
+            const height = 360;
+            const padding = { top: 24, right: 28, bottom: 56, left: 68 };
+            const innerWidth = width - padding.left - padding.right;
+            const innerHeight = height - padding.top - padding.bottom;
+            const xStep = cohortRows.length > 1 ? innerWidth / (cohortRows.length - 1) : 0;
+            const allValues = cohortRows.flatMap(row => [row.stage1Avg, row.stage2Avg, row.stage3Avg]);
+            const maxValue = Math.max(1, ...allValues);
+            const yMax = maxValue <= 5 ? 5 : Math.ceil(maxValue / 5) * 5;
+            const ySteps = 5;
+            const yForValue = value => padding.top + innerHeight - ((value / yMax) * innerHeight);
+            const xForIndex = index => padding.left + (cohortRows.length > 1 ? index * xStep : innerWidth / 2);
+            const series = [
+                { label: 'Month 1', key: 'stage1Avg', color: '#2563eb' },
+                { label: 'Month 2', key: 'stage2Avg', color: '#0f766e' },
+                { label: 'Month 3', key: 'stage3Avg', color: '#f97316' }
+            ];
+
+            const gridLines = Array.from({ length: ySteps + 1 }, (_, index) => {
+                const value = Math.round((yMax / ySteps) * index);
+                const y = yForValue(value);
+                return `
+                    <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(148,163,184,0.16)" stroke-width="1" />
+                    <text x="${padding.left - 12}" y="${y + 4}" text-anchor="end" font-size="11" font-weight="800" fill="#64748b">${formatCompactMetricValue('sales', value)}</text>
+                `;
+            }).join('');
+
+            const xLabels = cohortRows.map((row, index) => `
+                <text x="${xForIndex(index)}" y="${height - 18}" text-anchor="middle" font-size="12" font-weight="800" fill="#475569">${formatMonth(row.joinMonthKey)}</text>
+            `).join('');
+
+            const seriesMarkup = series.map((item, itemIndex) => {
+                const points = cohortRows.map((row, index) => ({
+                    x: xForIndex(index),
+                    y: yForValue(row[item.key]),
+                    value: row[item.key]
+                }));
+                const linePath = buildSmoothSvgPath(points);
+                const lastPoint = points[points.length - 1];
+                const dots = points.map(point => `
+                    <circle cx="${point.x}" cy="${point.y}" r="4.5" fill="${item.color}" stroke="#ffffff" stroke-width="2.5" />
+                `).join('');
+                const labels = itemIndex === 2
+                    ? points.map(point => `
+                        <text x="${point.x}" y="${point.y - 12}" text-anchor="middle" font-size="10.5" font-weight="800" fill="${item.color}">${formatCompactMetricValue('sales', point.value)}</text>
+                    `).join('')
+                    : `<text x="${lastPoint.x + 8}" y="${lastPoint.y + 4}" font-size="11" font-weight="900" fill="${item.color}">${item.label}</text>`;
+
+                return `
+                    <path d="${linePath}" fill="none" stroke="${item.color}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    ${dots}
+                    ${labels}
+                `;
+            }).join('');
+
+            const cohortCards = cohortRows.map(row => `
+                <div class="cohort-card">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Join Cohort</div>
+                            <div class="mt-2 text-2xl font-black text-slate-900">${formatMonth(row.joinMonthKey)}</div>
+                        </div>
+                        <div class="executive-summary-badge">${row.hires} hires</div>
+                    </div>
+                    <div class="mt-4 cohort-stage-grid">
+                        <div class="cohort-stage-box stage-1">
+                            <div class="text-xs font-black uppercase tracking-[0.14em] text-blue-700">Month 1</div>
+                            <div class="mt-2 text-2xl font-black data-font text-slate-900">${formatRoundedK(row.stage1Avg)}</div>
+                        </div>
+                        <div class="cohort-stage-box stage-2">
+                            <div class="text-xs font-black uppercase tracking-[0.14em] text-teal-700">Month 2</div>
+                            <div class="mt-2 text-2xl font-black data-font text-slate-900">${row.stage2Count ? formatRoundedK(row.stage2Avg) : '-'}</div>
+                        </div>
+                        <div class="cohort-stage-box stage-3">
+                            <div class="text-xs font-black uppercase tracking-[0.14em] text-orange-700">Month 3</div>
+                            <div class="mt-2 text-2xl font-black data-font text-slate-900">${row.stage3Count ? formatRoundedK(row.stage3Avg) : '-'}</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 executive-note">Progress: ${row.stage3Count ? `${formatRoundedK(row.stage3Avg - row.stage1Avg)} vs Month 1` : 'Month 3 not available yet'}</div>
+                </div>
+            `).join('');
+
+            chart.innerHTML = `
+                <div class="grid gap-5">
+                    <svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="New hire first 3 months sales progression">
+                        <rect x="0" y="0" width="${width}" height="${height}" rx="22" fill="transparent"></rect>
+                        ${gridLines}
+                        <line x1="${padding.left}" y1="${padding.top + innerHeight}" x2="${width - padding.right}" y2="${padding.top + innerHeight}" stroke="rgba(15,23,42,0.22)" stroke-width="1.5" />
+                        ${xLabels}
+                        ${seriesMarkup}
+                    </svg>
+                    <div class="grid gap-4 xl:grid-cols-3">
+                        ${cohortCards}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSummaryCards() {
+            const records = getFilteredRecords();
+            const summary = summarize(records);
+            const earlyLossCount = getEarlyLossCount(records);
+            const earlyLossRate = getEarlyLossRate(records);
+            const matchedSales = records.filter(record => record.salesMonthCount && record.salesAverage > 0).length;
+            const avgHireSales = getAverageHireSales(records);
+
+            const cards = [
+                {
+                    title: 'Selected Hires',
+                    value: summary.total,
+                    accent: '#0f172a',
+                    badge: getBrandLabel(),
+                    note: `${getSelectedMonthLabel()} / ${getPositionLabel()}`
+                },
+                {
+                    title: 'Still Active',
+                    value: summary.active,
+                    accent: '#0f766e',
+                    badge: 'Retention',
+                    note: summary.total ? `${Math.round((summary.active / summary.total) * 100)}% retained` : 'No active hires'
+                },
+                {
+                    title: 'Left Cases',
+                    value: summary.left,
+                    accent: '#c2410c',
+                    badge: 'Outflow',
+                    note: summary.total ? `${Math.round((summary.left / summary.total) * 100)}% left` : 'No exits in selection'
+                },
+                {
+                    title: 'Early Loss <=30D',
+                    value: `${earlyLossRate}%`,
+                    accent: '#b91c1c',
+                    badge: `${earlyLossCount} hires`,
+                    note: earlyLossCount ? `${earlyLossCount} hires left within first 30 days` : 'No early attrition detected'
+                },
+                {
+                    title: 'Avg Sales / Hire',
+                    value: formatRoundedK(avgHireSales),
+                    accent: '#1d4ed8',
+                    badge: `${matchedSales} matched`,
+                    note: matchedSales ? 'Average monthly sales of matched hires' : 'No matched sales records'
+                }
+            ];
+
+            document.getElementById('summaryCards').innerHTML = cards.map(card => `
+                <div class="glass-card executive-summary-card p-5" style="--summary-accent:${card.accent}">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">${card.title}</div>
+                        <div class="executive-summary-badge">${card.badge}</div>
+                    </div>
+                    <div class="mt-5 text-4xl font-black data-font text-slate-900">${card.value}</div>
+                    <div class="mt-3 executive-note">${card.note}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderBrandCards() {
+            const baseRecords = getFilteredRecords();
+            const groups = groupByBrand(baseRecords);
+            const container = document.getElementById('brandCards');
+            if (!container) return;
+
+            if (!groups.length) {
+                container.innerHTML = `
+                    <div class="glass-card col-span-full p-8 text-center text-sm font-black text-slate-500">
+                        No brand snapshot data under current filters.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = groups.map(group => {
+                const summary = summarize(group.records);
+                const earlyLossCount = getEarlyLossCount(group.records);
+                const earlyLossRate = getEarlyLossRate(group.records);
+                const netOnBoard = summary.total - summary.left;
+                const segments = BUCKETS.map(bucket => {
+                    const value = summary[bucket.id];
+                    const width = summary.left ? Math.max(4, (value / summary.left) * 100) : 0;
+                    return `<span class="${bucket.segment}" style="width:${width}%"></span>`;
+                }).join('');
+                const chips = BUCKETS.map(bucket => `
+                    <button type="button" class="legend-card-button ${selectedDetailBucket === bucket.id ? 'active' : ''} ${bucket.chip} bucket-chip" onclick="setDetailBucketFilter('${bucket.id}')">
+                        ${bucket.label} ${summary[bucket.id]}
+                    </button>
+                `).join('');
+
+                return `
+                    <button type="button" class="glass-card p-5 text-left transition hover:-translate-y-0.5" onclick="setBrandFromCard('${group.brand}')">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Brand</div>
+                                <div class="mt-2 text-2xl font-black text-slate-900">${group.brand}</div>
+                            </div>
+                            <div class="rounded-2xl bg-slate-900 px-4 py-3 text-right text-white">
+                                <div class="text-xs font-black uppercase tracking-[0.15em] text-white/65">Selected</div>
+                                <div class="text-3xl font-black data-font">${summary.total}</div>
+                            </div>
+                        </div>
+                        <div class="mt-5 brand-kpi-grid">
+                            <div class="brand-kpi-box">
+                                <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-500">In</div>
+                                <div class="mt-2 text-2xl font-black data-font text-slate-900">${summary.total}</div>
+                            </div>
+                            <div class="brand-kpi-box">
+                                <div class="text-xs font-black uppercase tracking-[0.14em] text-orange-700">Out</div>
+                                <div class="mt-2 text-2xl font-black data-font text-orange-800">${summary.left}</div>
+                            </div>
+                            <div class="brand-kpi-box net">
+                                <div class="text-xs font-black uppercase tracking-[0.14em] text-teal-700">Net</div>
+                                <div class="mt-2 text-2xl font-black data-font text-teal-800">${netOnBoard}</div>
+                            </div>
+                            <div class="brand-kpi-box risk">
+                                <div class="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Early Loss %</div>
+                                <div class="mt-2 text-2xl font-black data-font text-amber-800">${earlyLossRate}%</div>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center justify-between gap-4 text-sm font-bold text-slate-500">
+                            <div>Early loss cases: <span class="data-font text-slate-900">${earlyLossCount}</span></div>
+                            <div>Avg stay: <span class="data-font text-slate-900">${summary.avgStay}d</span></div>
+                        </div>
+                        <div class="mt-5">
+                            <div class="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">Exit Bucket Distribution</div>
+                            <div class="stack-bar">${segments}</div>
+                        </div>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            ${chips}
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderKeyAlerts() {
+            const container = document.getElementById('keyAlertsGrid');
+            if (!container) return;
+
+            const records = getFilteredRecords();
+            const groups = groupByBrand(records).map(group => {
+                const earlyLossRate = getEarlyLossRate(group.records);
+                const earlyLossCount = getEarlyLossCount(group.records);
+                const summary = summarize(group.records);
+                const avgSales = getAverageHireSales(group.records);
+                const activeZeroSales = group.records.filter(record => !record.termDate && (!record.salesMonthCount || record.salesTotal <= 0)).length;
+                return {
+                    brand: group.brand,
+                    total: group.records.length,
+                    left: summary.left,
+                    active: summary.active,
+                    earlyLossRate,
+                    earlyLossCount,
+                    avgSales,
+                    activeZeroSales
+                };
+            });
+
+            if (!groups.length) {
+                container.innerHTML = `
+                    <div class="alert-card xl:col-span-4 text-center text-sm font-black text-slate-500">
+                        No alert data under current filters.
+                    </div>
+                `;
+                return;
+            }
+
+            const riskBase = groups.filter(group => group.total >= 3);
+            const highestEarlyLoss = [...(riskBase.length ? riskBase : groups)].sort((a, b) => b.earlyLossRate - a.earlyLossRate || b.earlyLossCount - a.earlyLossCount)[0];
+            const highestOutflow = [...groups].sort((a, b) => b.left - a.left || b.total - a.total)[0];
+            const strongestSales = [...groups].filter(group => group.avgSales > 0).sort((a, b) => b.avgSales - a.avgSales)[0];
+            const activeZeroSales = groups.reduce((sum, group) => sum + group.activeZeroSales, 0);
+
+            const cards = [
+                {
+                    tone: 'critical',
+                    title: 'Highest Early Loss',
+                    value: highestEarlyLoss ? `${highestEarlyLoss.brand} ${highestEarlyLoss.earlyLossRate}%` : 'N/A',
+                    note: highestEarlyLoss ? `${highestEarlyLoss.earlyLossCount} hires left within 30 days out of ${highestEarlyLoss.total}` : 'No early-loss signal'
+                },
+                {
+                    tone: 'watch',
+                    title: 'Highest Outflow',
+                    value: highestOutflow ? `${highestOutflow.brand} ${highestOutflow.left}` : 'N/A',
+                    note: highestOutflow ? `${highestOutflow.left} exits / ${highestOutflow.total} selected hires` : 'No outflow signal'
+                },
+                {
+                    tone: 'opportunity',
+                    title: 'Top Productivity Brand',
+                    value: strongestSales ? `${strongestSales.brand} ${formatRoundedK(strongestSales.avgSales)}` : 'N/A',
+                    note: strongestSales ? 'Highest average sales per matched hire' : 'No matched sales records'
+                },
+                {
+                    tone: 'followup',
+                    title: 'Active No Sales',
+                    value: `${activeZeroSales}`,
+                    note: activeZeroSales ? 'Still-active hires with zero / no matched sales' : 'No zero-sales active hire'
+                }
+            ];
+
+            container.innerHTML = cards.map(card => `
+                <div class="alert-card alert-card-${card.tone}">
+                    <div class="alert-card-title">${card.title}</div>
+                    <div class="mt-4 text-3xl font-black data-font text-slate-900">${card.value}</div>
+                    <div class="mt-3 executive-note">${card.note}</div>
+                </div>
+            `).join('');
+        }
+
+        function applyVisualPolish() {
+            document.title = '2026 New Hire In/Out Executive Review';
+            document.body.classList.add('executive-mode');
+
+            const header = document.querySelector('header.glass-card');
+            if (header) {
+                header.classList.add('executive-hero');
+                const badge = header.querySelector('.inline-flex.rounded-full');
+                const title = header.querySelector('h1');
+                const intro = header.querySelector('p');
+                const actions = header.querySelectorAll('a');
+                if (badge) badge.textContent = 'Executive Dashboard';
+                if (title) title.textContent = '2026 新人 In / Out Executive Review';
+                if (intro) intro.innerHTML = '以 <span class="text-teal-700">Sheet6</span> 新人名單為基礎，按返工月份、品牌、Position 與留任日數 bucket 做管理層 review；有 Term Date 歸入離職分析，冇 Term Date 自動列為 <span class="text-teal-700">Still Active</span>。';
+                if (actions[0]) actions[0].textContent = 'Dashboard';
+                if (actions[1]) actions[1].textContent = 'Sheet Source';
+            }
+
+            ensureSectionKicker(document.getElementById('summaryCards')?.closest('div')?.querySelector('#summaryCards')?.parentElement, 'Executive Highlights');
+            const keyAlertsSection = document.getElementById('keyAlertsSection');
+            if (keyAlertsSection) {
+                ensureSectionKicker(keyAlertsSection, 'Exception Summary');
+            }
+            const brandSnapshotSection = document.getElementById('brandCards')?.closest('section');
+            if (brandSnapshotSection) ensureSectionKicker(brandSnapshotSection, 'Brand Snapshot');
+            const performanceSection = document.getElementById('brandPerformanceMeta')?.closest('section');
+            if (performanceSection) ensureSectionKicker(performanceSection, 'Performance Review');
+            const overviewSection = document.getElementById('overviewMeta')?.closest('section');
+            if (overviewSection) ensureSectionKicker(overviewSection, 'Trend Review');
+            const productivitySection = document.getElementById('productivityMeta')?.closest('section');
+            if (productivitySection) ensureSectionKicker(productivitySection, 'Productivity');
+            const detailReviewSection = document.getElementById('detailSummary')?.closest('section');
+            if (detailReviewSection) ensureSectionKicker(detailReviewSection, 'Detail Review');
+
+            document.getElementById('loadingStatus')?.replaceChildren(document.createTextNode('Loading Sheet6 and Sales data...'));
+        }
+
+        function renderAll() {
+            normalizeCopyDeck();
+            renderMonthFilters();
+            renderBrandFilters();
+            renderPositionFilters();
+            renderOverviewBrandFilters();
+            renderDetailStayFilters();
+            renderDetailSortFilters();
+            renderDetailPositionFilters();
+            renderDetailSalesFilters();
+            renderDetailRealizedFilters();
+            renderSummaryCards();
+            renderKeyAlerts();
             renderBrandPieChart();
             renderBucketPieChart();
             renderBrandCards();
