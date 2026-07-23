@@ -597,6 +597,110 @@
             border-color: rgba(253, 230, 138, 0.92);
         }
 
+        .brand-distribution-shell {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 156px minmax(0, 1fr);
+            align-items: center;
+        }
+
+        .brand-snapshot-card {
+            padding: 1.4rem;
+        }
+
+        .brand-snapshot-layout {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: minmax(0, 430px) minmax(0, 1fr);
+            align-items: start;
+        }
+
+        .brand-snapshot-main {
+            min-width: 0;
+        }
+
+        .brand-snapshot-chart-panel {
+            min-width: 0;
+            border-radius: 1.4rem;
+            border: 1px solid rgba(226, 232, 240, 0.92);
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.96));
+            padding: 1.25rem;
+        }
+
+        .brand-snapshot-chart-wrap {
+            display: grid;
+            gap: 1.25rem;
+            grid-template-columns: 240px minmax(0, 1fr);
+            align-items: center;
+        }
+
+        .brand-mini-pie {
+            width: 156px;
+            height: 156px;
+            border-radius: 9999px;
+            position: relative;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7), 0 16px 30px -24px rgba(15, 35, 65, 0.4);
+        }
+
+        .brand-mini-pie.hero {
+            width: 240px;
+            height: 240px;
+        }
+
+        .brand-mini-pie::after {
+            content: "";
+            position: absolute;
+            inset: 24px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.97);
+            box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.88);
+        }
+
+        .brand-mini-pie.hero::after {
+            inset: 38px;
+        }
+
+        .brand-mini-pie-center {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .brand-bucket-grid {
+            display: grid;
+            gap: 0.65rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .brand-bucket-card {
+            border-radius: 1rem;
+            border: 1px solid rgba(226, 232, 240, 0.92);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.75rem 0.85rem;
+        }
+
+        @media (max-width: 1279px) {
+            .brand-snapshot-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .brand-snapshot-chart-wrap {
+                grid-template-columns: 1fr;
+                justify-items: center;
+            }
+
+            .brand-bucket-grid {
+                width: 100%;
+            }
+        }
+
         .cohort-card {
             border-radius: 1.15rem;
             border: 1px solid rgba(226, 232, 240, 0.92);
@@ -631,6 +735,77 @@
         .cohort-stage-box.stage-3 {
             background: rgba(255, 247, 237, 0.95);
             border-color: rgba(254, 215, 170, 0.95);
+        }
+
+        .cohort-insight-grid {
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .cohort-insight-box {
+            border-radius: 1rem;
+            border: 1px solid rgba(226, 232, 240, 0.92);
+            background: rgba(255, 255, 255, 0.94);
+            padding: 0.9rem 1rem;
+        }
+
+        .cohort-series-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+        }
+
+        .cohort-series-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(226, 232, 240, 0.92);
+            background: rgba(255, 255, 255, 0.94);
+            padding: 0.45rem 0.8rem;
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #475569;
+        }
+
+        .cohort-series-dot {
+            width: 0.7rem;
+            height: 0.7rem;
+            border-radius: 9999px;
+            flex: 0 0 auto;
+        }
+
+        .cohort-trend-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            padding: 0.35rem 0.7rem;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .cohort-trend-badge.up {
+            background: rgba(220, 252, 231, 0.96);
+            color: #166534;
+        }
+
+        .cohort-trend-badge.flat {
+            background: rgba(241, 245, 249, 0.96);
+            color: #475569;
+        }
+
+        .cohort-trend-badge.down {
+            background: rgba(255, 237, 213, 0.96);
+            color: #c2410c;
+        }
+
+        .cohort-trend-badge.pending {
+            background: rgba(219, 234, 254, 0.96);
+            color: #1d4ed8;
         }
 
         .executive-note {
@@ -803,7 +978,7 @@
                     </div>
                 </div>
             </div>
-            <div id="brandCards" class="grid grid-cols-1 gap-4 xl:grid-cols-3"></div>
+            <div id="brandCards" class="grid grid-cols-1 gap-5"></div>
         </section>
 
         <section class="glass-card p-6 md:p-7">
@@ -3582,6 +3757,191 @@
             document.getElementById('loadingStatus')?.replaceChildren(document.createTextNode('Loading Sheet6 and Sales data...'));
         }
 
+        function normalizePositionKey(value, category = '') {
+            const raw = String(value || '').trim().toUpperCase();
+            if (raw) return raw;
+            return String(category || '').trim().toUpperCase() === 'BS' ? 'BS' : 'UNMAPPED';
+        }
+
+        function formatPositionFilterLabel(key) {
+            return key === 'UNMAPPED' ? 'Unmapped' : key;
+        }
+
+        function getPositionUniverseRecords() {
+            const selectedMonthKeys = getSelectedMonthKeys();
+            return allRecords.filter(record => {
+                const monthOk = selectedMonthKeys.includes(record.monthKey);
+                const brandOk = selectedBrand === 'ALL' || record.brand === selectedBrand;
+                return monthOk && brandOk;
+            });
+        }
+
+        function getAvailablePositionKeys() {
+            const keys = [...new Set(
+                getPositionUniverseRecords().map(record => normalizePositionKey(record.positionLabel, record.positionCategory))
+            )];
+
+            return keys.sort((a, b) => {
+                if (a === 'BS') return -1;
+                if (b === 'BS') return 1;
+                if (a === 'UNMAPPED') return 1;
+                if (b === 'UNMAPPED') return -1;
+                return a.localeCompare(b);
+            });
+        }
+
+        function getDefaultPositionSelection() {
+            const keys = getAvailablePositionKeys();
+            const nonBs = keys.filter(key => key !== 'BS');
+            return nonBs.length ? nonBs : (keys.length ? [keys[0]] : ['ALL']);
+        }
+
+        function isAllPositionsSelected() {
+            return Array.isArray(selectedPosition) && selectedPosition.includes('ALL');
+        }
+
+        function ensureSelectedPositionState() {
+            const availableKeys = getAvailablePositionKeys();
+
+            if (!Array.isArray(selectedPosition)) {
+                if (selectedPosition === 'ALL') {
+                    selectedPosition = ['ALL'];
+                } else if (selectedPosition === 'BS') {
+                    selectedPosition = ['BS'];
+                } else if (selectedPosition === 'OTHER') {
+                    selectedPosition = getDefaultPositionSelection();
+                } else if (selectedPosition) {
+                    selectedPosition = [normalizePositionKey(selectedPosition)];
+                } else {
+                    selectedPosition = getDefaultPositionSelection();
+                }
+            }
+
+            if (isAllPositionsSelected()) {
+                selectedPosition = ['ALL'];
+                return;
+            }
+
+            selectedPosition = selectedPosition
+                .map(key => normalizePositionKey(key))
+                .filter(key => availableKeys.includes(key));
+
+            if (!selectedPosition.length) {
+                selectedPosition = getDefaultPositionSelection();
+            }
+        }
+
+        function getSelectedPositionKeys() {
+            ensureSelectedPositionState();
+            return isAllPositionsSelected() ? getAvailablePositionKeys() : [...selectedPosition];
+        }
+
+        function getPositionLabel(positionKey = selectedPosition) {
+            const allKeys = getAvailablePositionKeys();
+            const keys = Array.isArray(positionKey)
+                ? (positionKey.includes('ALL') ? allKeys : positionKey.map(key => normalizePositionKey(key)).filter(key => allKeys.includes(key)))
+                : (positionKey === 'ALL' ? allKeys : [normalizePositionKey(positionKey)]);
+
+            if (Array.isArray(positionKey) && positionKey.includes('ALL')) {
+                return 'All Positions';
+            }
+            if (!keys.length) return 'No Position';
+            if (keys.length === allKeys.length) return 'All Positions';
+            if (keys.length <= 3) return keys.map(formatPositionFilterLabel).join(', ');
+            return `${keys.length} Positions`;
+        }
+
+        function togglePositionSelection(key) {
+            ensureSelectedPositionState();
+            if (key === 'ALL') {
+                selectedPosition = ['ALL'];
+                renderAll();
+                return;
+            }
+
+            if (isAllPositionsSelected()) {
+                selectedPosition = [key];
+                renderAll();
+                return;
+            }
+
+            if (selectedPosition.includes(key)) {
+                selectedPosition = selectedPosition.filter(item => item !== key);
+                if (!selectedPosition.length) {
+                    selectedPosition = ['ALL'];
+                }
+            } else {
+                selectedPosition = [...selectedPosition, key];
+            }
+
+            renderAll();
+        }
+
+        function renderPositionCoverageSummary() {
+            const container = document.getElementById('positionFilters');
+            if (!container) return;
+            const block = container.parentElement;
+            if (!block) return;
+
+            let note = document.getElementById('positionCoverageSummary');
+            if (!note) {
+                note = document.createElement('div');
+                note.id = 'positionCoverageSummary';
+                note.className = 'mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-500 ring-1 ring-slate-200';
+                block.appendChild(note);
+            }
+
+            const available = getAvailablePositionKeys();
+            const included = getSelectedPositionKeys();
+            const excluded = available.filter(key => !included.includes(key));
+            const includedText = included.length ? included.map(formatPositionFilterLabel).join(', ') : 'None';
+            const excludedText = excluded.length ? excluded.map(formatPositionFilterLabel).join(', ') : 'None';
+            note.innerHTML = `<span class="font-black text-slate-900">Included:</span> ${includedText}<br><span class="font-black text-slate-900">Excluded:</span> ${excludedText}`;
+        }
+
+        function renderPositionFilterButtons(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            ensureSelectedPositionState();
+            const available = getAvailablePositionKeys();
+            container.innerHTML = '';
+
+            const items = [{ key: 'ALL', label: '全部' }, ...available.map(key => ({ key, label: formatPositionFilterLabel(key) }))];
+            items.forEach(item => {
+                const button = document.createElement('button');
+                const active = item.key === 'ALL' ? isAllPositionsSelected() : getSelectedPositionKeys().includes(item.key);
+                button.className = `filter-pill ${active ? 'active' : ''}`;
+                button.textContent = item.label;
+                button.onclick = () => togglePositionSelection(item.key);
+                container.appendChild(button);
+            });
+        }
+
+        function renderPositionFilters() {
+            renderPositionFilterButtons('positionFilters');
+            renderPositionCoverageSummary();
+        }
+
+        function renderDetailPositionFilters() {
+            renderPositionFilterButtons('detailPositionFilters');
+        }
+
+        function renderBrandPerformancePositionFilters() {
+            renderPositionFilterButtons('brandPerformancePositionFilters');
+        }
+
+        function getFilteredRecords() {
+            const selectedMonthKeys = getSelectedMonthKeys();
+            const selectedPositionKeys = getSelectedPositionKeys();
+            return allRecords.filter(record => {
+                const monthOk = selectedMonthKeys.includes(record.monthKey);
+                const brandOk = selectedBrand === 'ALL' || record.brand === selectedBrand;
+                const recordPositionKey = normalizePositionKey(record.positionLabel, record.positionCategory);
+                const positionOk = isAllPositionsSelected() || selectedPositionKeys.includes(recordPositionKey);
+                return monthOk && brandOk && positionOk;
+            });
+        }
+
         function renderAll() {
             normalizeCopyDeck();
             renderMonthFilters();
@@ -4144,71 +4504,120 @@
                 const earlyLossCount = getEarlyLossCount(group.records);
                 const earlyLossRate = getEarlyLossRate(group.records);
                 const netOnBoard = summary.total - summary.left;
+                const bucketColors = {
+                    b1: '#fb7185',
+                    b2: '#f97316',
+                    b3: '#fbbf24',
+                    b4: '#14b8a6',
+                    b5: '#3b82f6'
+                };
                 const topLossBucket = BUCKETS
                     .map(bucket => ({ ...bucket, value: summary[bucket.id] }))
                     .sort((a, b) => b.value - a.value)[0];
                 const topLossShare = summary.left && topLossBucket ? Math.round((topLossBucket.value / summary.left) * 100) : 0;
-                const segments = BUCKETS.map(bucket => {
-                    const value = summary[bucket.id];
-                    const width = summary.left ? Math.max(4, (value / summary.left) * 100) : 0;
-                    return `<span class="${bucket.segment}" style="width:${width}%"></span>`;
-                }).join('');
-                const chips = BUCKETS.map(bucket => `
-                    <button type="button" class="legend-card-button ${selectedDetailBucket === bucket.id ? 'active' : ''} ${bucket.chip} bucket-chip" onclick="setDetailBucketFilter('${bucket.id}')">
-                        ${bucket.label} ${summary[bucket.id]}
+                const bucketEntries = BUCKETS.map(bucket => {
+                    const count = summary[bucket.id];
+                    const percent = summary.left ? Math.round((count / summary.left) * 100) : 0;
+                    return {
+                        ...bucket,
+                        count,
+                        percent,
+                        color: bucketColors[bucket.id] || '#94a3b8'
+                    };
+                });
+                let pieCursor = 0;
+                const pieBackground = summary.left
+                    ? `conic-gradient(${bucketEntries.map(entry => {
+                        const start = pieCursor;
+                        const end = pieCursor + ((entry.count / summary.left) * 360);
+                        pieCursor = end;
+                        return `${entry.color} ${start}deg ${end}deg`;
+                    }).join(', ')})`
+                    : 'conic-gradient(#e2e8f0 0deg 360deg)';
+                const bucketCards = bucketEntries.map(entry => `
+                    <button type="button" class="brand-bucket-card text-left transition hover:-translate-y-0.5 ${selectedDetailBucket === entry.id ? 'ring-2 ring-slate-900/10' : ''}" onclick="event.stopPropagation(); setDetailBucketFilter('${entry.id}')">
+                        <div class="flex items-center gap-2">
+                            <span class="legend-dot" style="background:${entry.color}"></span>
+                            <div class="text-xs font-black uppercase tracking-[0.12em] text-slate-500">${entry.label}</div>
+                        </div>
+                        <div class="mt-3 flex items-end justify-between gap-3">
+                            <div class="text-2xl font-black data-font text-slate-900">${entry.count}</div>
+                            <div class="text-sm font-black text-slate-500">${summary.left ? `${entry.percent}%` : '-'}</div>
+                        </div>
                     </button>
                 `).join('');
 
                 return `
-                    <button type="button" class="glass-card p-5 text-left transition hover:-translate-y-0.5" onclick="setBrandFromCard('${group.brand}')">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Brand</div>
-                                <div class="mt-2 text-2xl font-black text-slate-900">${group.brand}</div>
+                    <div role="button" tabindex="0" class="glass-card brand-snapshot-card cursor-pointer text-left transition hover:-translate-y-0.5" onclick="setBrandFromCard('${group.brand}')" onkeydown="if(event.key==='Enter'||event.key===' '){ event.preventDefault(); setBrandFromCard('${group.brand}'); }">
+                        <div class="brand-snapshot-layout">
+                            <div class="brand-snapshot-main">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div>
+                                        <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Brand</div>
+                                        <div class="mt-2 text-2xl font-black text-slate-900">${group.brand}</div>
+                                    </div>
+                                    <div class="rounded-2xl bg-slate-900 px-4 py-3 text-right text-white">
+                                        <div class="text-xs font-black uppercase tracking-[0.15em] text-white/65">Selected</div>
+                                        <div class="text-3xl font-black data-font">${summary.total}</div>
+                                    </div>
+                                </div>
+                                <div class="mt-5 brand-kpi-grid">
+                                    <div class="brand-kpi-box">
+                                        <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-500">In</div>
+                                        <div class="mt-2 text-2xl font-black data-font text-slate-900">${summary.total}</div>
+                                    </div>
+                                    <div class="brand-kpi-box">
+                                        <div class="text-xs font-black uppercase tracking-[0.14em] text-orange-700">Out</div>
+                                        <div class="mt-2 text-2xl font-black data-font text-orange-800">${summary.left}</div>
+                                    </div>
+                                    <div class="brand-kpi-box net">
+                                        <div class="text-xs font-black uppercase tracking-[0.14em] text-teal-700">Net</div>
+                                        <div class="mt-2 text-2xl font-black data-font text-teal-800">${netOnBoard}</div>
+                                    </div>
+                                    <div class="brand-kpi-box risk">
+                                        <div class="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Early Loss %</div>
+                                        <div class="mt-2 text-2xl font-black data-font text-amber-800">${earlyLossRate}%</div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 brand-insight-grid">
+                                    <div class="brand-insight-box highlight">
+                                        <div class="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Top Exit Bucket</div>
+                                        <div class="mt-2 text-xl font-black text-slate-900">${topLossBucket ? topLossBucket.label : '-'}</div>
+                                        <div class="mt-1 text-sm font-bold text-slate-500">${topLossBucket ? `${topLossBucket.value} hires` : 'No exits'}${topLossBucket && summary.left ? ` / ${topLossShare}% of exits` : ''}</div>
+                                    </div>
+                                    <div class="brand-insight-box">
+                                        <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-500">30-Day Exit / Avg Stay</div>
+                                        <div class="mt-2 text-xl font-black text-slate-900">${earlyLossCount} / ${summary.avgStay}d</div>
+                                        <div class="mt-1 text-sm font-bold text-slate-500">${earlyLossRate}% exited within first 30 days</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="rounded-2xl bg-slate-900 px-4 py-3 text-right text-white">
-                                <div class="text-xs font-black uppercase tracking-[0.15em] text-white/65">Selected</div>
-                                <div class="text-3xl font-black data-font">${summary.total}</div>
+                            <div class="brand-snapshot-chart-panel">
+                                <div class="mb-4 flex items-center justify-between gap-4">
+                                    <div>
+                                        <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Stay Day Chart</div>
+                                        <div class="mt-1 text-lg font-black text-slate-900">Stay Day Pie Distribution</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Left Cases</div>
+                                        <div class="mt-1 text-2xl font-black data-font text-slate-900">${summary.left}</div>
+                                    </div>
+                                </div>
+                                <div class="brand-snapshot-chart-wrap">
+                                    <div class="brand-mini-pie hero" style="background:${pieBackground}">
+                                        <div class="brand-mini-pie-center">
+                                            <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Stay Day</div>
+                                            <div class="mt-2 text-5xl font-black data-font text-slate-900">${summary.left}</div>
+                                            <div class="mt-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">${summary.left ? 'Left Cases' : 'No Exits'}</div>
+                                        </div>
+                                    </div>
+                                    <div class="brand-bucket-grid">
+                                        ${bucketCards}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="mt-5 brand-kpi-grid">
-                            <div class="brand-kpi-box">
-                                <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-500">In</div>
-                                <div class="mt-2 text-2xl font-black data-font text-slate-900">${summary.total}</div>
-                            </div>
-                            <div class="brand-kpi-box">
-                                <div class="text-xs font-black uppercase tracking-[0.14em] text-orange-700">Out</div>
-                                <div class="mt-2 text-2xl font-black data-font text-orange-800">${summary.left}</div>
-                            </div>
-                            <div class="brand-kpi-box net">
-                                <div class="text-xs font-black uppercase tracking-[0.14em] text-teal-700">Net</div>
-                                <div class="mt-2 text-2xl font-black data-font text-teal-800">${netOnBoard}</div>
-                            </div>
-                            <div class="brand-kpi-box risk">
-                                <div class="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Early Loss %</div>
-                                <div class="mt-2 text-2xl font-black data-font text-amber-800">${earlyLossRate}%</div>
-                            </div>
-                        </div>
-                        <div class="mt-4 brand-insight-grid">
-                            <div class="brand-insight-box highlight">
-                                <div class="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Top Exit Bucket</div>
-                                <div class="mt-2 text-xl font-black text-slate-900">${topLossBucket ? topLossBucket.label : '-'}</div>
-                                <div class="mt-1 text-sm font-bold text-slate-500">${topLossBucket ? `${topLossBucket.value} hires` : 'No exits'}${topLossBucket && summary.left ? ` / ${topLossShare}% of exits` : ''}</div>
-                            </div>
-                            <div class="brand-insight-box">
-                                <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-500">30-Day Exit / Avg Stay</div>
-                                <div class="mt-2 text-xl font-black text-slate-900">${earlyLossCount} / ${summary.avgStay}d</div>
-                                <div class="mt-1 text-sm font-bold text-slate-500">${earlyLossRate}% exited within first 30 days</div>
-                            </div>
-                        </div>
-                        <div class="mt-5">
-                            <div class="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">Exit Bucket Distribution</div>
-                            <div class="stack-bar">${segments}</div>
-                        </div>
-                        <div class="mt-4 flex flex-wrap gap-2">
-                            ${chips}
-                        </div>
-                    </button>
+                    </div>
                 `;
             }).join('');
         }
@@ -4346,6 +4755,269 @@
             renderDetailTable();
             ensurePublicSafePresentation();
             applyVisualPolish();
+        }
+
+        function ensureCohortProgressionSection() {
+            if (document.getElementById('cohortProgressionSection')) return;
+            const productivitySection = document.getElementById('productivityMeta')?.closest('section');
+            if (!productivitySection) return;
+
+            const section = document.createElement('section');
+            section.id = 'cohortProgressionSection';
+            section.className = 'glass-card p-6 md:p-7';
+            section.innerHTML = `
+                <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-900">New Hire 3-Month Sales Progression</h2>
+                        <p class="mt-2 text-sm font-bold text-slate-500">將新人按入職月份分 cohort，比較佢哋入職後第 1、2、3 個月平均 Sales，睇返係咪逐月有進步。</p>
+                    </div>
+                    <div id="cohortProgressionMeta" class="text-sm font-black text-slate-500"></div>
+                </div>
+                <div class="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)] mt-6">
+                    <div id="cohortProgressionCards" class="grid gap-3"></div>
+                    <div class="chart-shell">
+                        <div id="cohortProgressionEmpty" class="hidden px-6 py-16 text-center text-sm font-black text-slate-400">
+                            No new-hire progression data under the current filters.
+                        </div>
+                        <div id="cohortProgressionInsights" class="mb-4 hidden"></div>
+                        <div id="cohortProgressionLegend" class="mb-4 hidden"></div>
+                        <div class="overflow-x-auto">
+                            <div id="cohortProgressionChart" class="min-w-[720px]"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            productivitySection.insertAdjacentElement('afterend', section);
+        }
+
+        function renderCohortProgressionSection() {
+            ensureCohortProgressionSection();
+            const section = document.getElementById('cohortProgressionSection');
+            const meta = document.getElementById('cohortProgressionMeta');
+            const cards = document.getElementById('cohortProgressionCards');
+            const chart = document.getElementById('cohortProgressionChart');
+            const empty = document.getElementById('cohortProgressionEmpty');
+            const insights = document.getElementById('cohortProgressionInsights');
+            const legend = document.getElementById('cohortProgressionLegend');
+            if (!section || !meta || !cards || !chart || !empty || !insights || !legend) return;
+
+            const cohortRows = getCohortProgressionRows(getFilteredRecords());
+            const totalHires = cohortRows.reduce((sum, row) => sum + row.hires, 0);
+            meta.textContent = `${cohortRows.length} join cohorts / ${totalHires} hires / current month-brand-position filters`;
+
+            if (!cohortRows.length) {
+                cards.innerHTML = '';
+                chart.innerHTML = '';
+                insights.innerHTML = '';
+                legend.innerHTML = '';
+                insights.classList.add('hidden');
+                legend.classList.add('hidden');
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+            insights.classList.remove('hidden');
+            legend.classList.remove('hidden');
+
+            const overallStage1 = Math.round(cohortRows.reduce((sum, row) => sum + row.stage1Avg, 0) / cohortRows.length);
+            const overallStage2 = Math.round(cohortRows.reduce((sum, row) => sum + row.stage2Avg, 0) / cohortRows.length);
+            const overallStage3 = Math.round(cohortRows.reduce((sum, row) => sum + row.stage3Avg, 0) / cohortRows.length);
+            const improvingCohorts = cohortRows.filter(row => row.stage3Count && row.stage3Avg > row.stage1Avg).length;
+            const completedCohorts = cohortRows.filter(row => row.stage3Count).length;
+            const overallLift = overallStage3 - overallStage1;
+            const overallLiftPct = overallStage1 ? Math.round((overallLift / overallStage1) * 100) : 0;
+
+            cards.innerHTML = [
+                {
+                    label: 'Month 1 Avg',
+                    value: formatRoundedK(overallStage1),
+                    note: 'Average Sales in first month'
+                },
+                {
+                    label: 'Month 2 Avg',
+                    value: formatRoundedK(overallStage2),
+                    note: 'Average Sales in second month'
+                },
+                {
+                    label: 'Month 3 Avg',
+                    value: formatRoundedK(overallStage3),
+                    note: 'Average Sales in third month'
+                },
+                {
+                    label: 'Month 3 Ready',
+                    value: `${completedCohorts}/${cohortRows.length}`,
+                    note: 'Cohorts already having full 3-month read'
+                }
+            ].map(item => `
+                <div class="chart-legend-button">
+                    <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">${item.label}</div>
+                    <div class="mt-3 text-3xl font-black data-font text-slate-900">${item.value}</div>
+                    <div class="mt-2 text-sm font-bold text-slate-500">${item.note}</div>
+                </div>
+            `).join('');
+
+            insights.innerHTML = `
+                <div class="cohort-insight-grid">
+                    <div class="cohort-insight-box">
+                        <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Overall Month 3 vs Month 1</div>
+                        <div class="mt-2 text-2xl font-black data-font text-slate-900">${overallLift >= 0 ? '+' : ''}${formatRoundedK(overallLift)}</div>
+                        <div class="mt-1 text-sm font-bold text-slate-500">${overallLiftPct >= 0 ? '+' : ''}${overallLiftPct}% change across cohort averages</div>
+                    </div>
+                    <div class="cohort-insight-box">
+                        <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Improving Cohorts</div>
+                        <div class="mt-2 text-2xl font-black data-font text-slate-900">${improvingCohorts}/${completedCohorts || cohortRows.length}</div>
+                        <div class="mt-1 text-sm font-bold text-slate-500">Month 3 average above Month 1</div>
+                    </div>
+                    <div class="cohort-insight-box">
+                        <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">How To Read</div>
+                        <div class="mt-2 text-base font-black text-slate-900">Each point is one join-month cohort average</div>
+                        <div class="mt-1 text-sm font-bold text-slate-500">Good for checking whether new hires ramp up after joining</div>
+                    </div>
+                </div>
+            `;
+
+            legend.innerHTML = `
+                <div class="cohort-series-legend">
+                    <div class="cohort-series-pill"><span class="cohort-series-dot" style="background:#2563eb"></span>Month 1 Sales</div>
+                    <div class="cohort-series-pill"><span class="cohort-series-dot" style="background:#0f766e"></span>Month 2 Sales</div>
+                    <div class="cohort-series-pill"><span class="cohort-series-dot" style="background:#f97316"></span>Month 3 Sales</div>
+                </div>
+            `;
+
+            const width = Math.max(760, cohortRows.length * 128);
+            const height = 360;
+            const padding = { top: 24, right: 28, bottom: 56, left: 68 };
+            const innerWidth = width - padding.left - padding.right;
+            const innerHeight = height - padding.top - padding.bottom;
+            const xStep = cohortRows.length > 1 ? innerWidth / (cohortRows.length - 1) : 0;
+            const allValues = cohortRows.flatMap(row => [row.stage1Avg, row.stage2Avg, row.stage3Avg]);
+            const maxValue = Math.max(1, ...allValues);
+            const yMax = maxValue <= 5 ? 5 : Math.ceil(maxValue / 5) * 5;
+            const ySteps = 5;
+            const yForValue = value => padding.top + innerHeight - ((value / yMax) * innerHeight);
+            const xForIndex = index => padding.left + (cohortRows.length > 1 ? index * xStep : innerWidth / 2);
+            const series = [
+                { label: 'Month 1', key: 'stage1Avg', color: '#2563eb' },
+                { label: 'Month 2', key: 'stage2Avg', color: '#0f766e' },
+                { label: 'Month 3', key: 'stage3Avg', color: '#f97316' }
+            ];
+
+            const gridLines = Array.from({ length: ySteps + 1 }, (_, index) => {
+                const value = Math.round((yMax / ySteps) * index);
+                const y = yForValue(value);
+                return `
+                    <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(148,163,184,0.16)" stroke-width="1" />
+                    <text x="${padding.left - 12}" y="${y + 4}" text-anchor="end" font-size="11" font-weight="800" fill="#64748b">${formatCompactMetricValue('sales', value)}</text>
+                `;
+            }).join('');
+
+            const xLabels = cohortRows.map((row, index) => `
+                <text x="${xForIndex(index)}" y="${height - 18}" text-anchor="middle" font-size="12" font-weight="800" fill="#475569">${formatMonth(row.joinMonthKey)}</text>
+            `).join('');
+
+            const seriesMarkup = series.map((item, itemIndex) => {
+                const points = cohortRows.map((row, index) => ({
+                    x: xForIndex(index),
+                    y: yForValue(row[item.key]),
+                    value: row[item.key]
+                }));
+                const linePath = buildSmoothSvgPath(points);
+                const lastPoint = points[points.length - 1];
+                const dots = points.map(point => `
+                    <circle cx="${point.x}" cy="${point.y}" r="4.5" fill="${item.color}" stroke="#ffffff" stroke-width="2.5" />
+                `).join('');
+                const labels = itemIndex === 2
+                    ? points.map(point => `
+                        <text x="${point.x}" y="${point.y - 12}" text-anchor="middle" font-size="10.5" font-weight="800" fill="${item.color}">${formatCompactMetricValue('sales', point.value)}</text>
+                    `).join('')
+                    : `<text x="${lastPoint.x + 8}" y="${lastPoint.y + 4}" font-size="11" font-weight="900" fill="${item.color}">${item.label}</text>`;
+
+                return `
+                    <path d="${linePath}" fill="none" stroke="${item.color}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    ${dots}
+                    ${labels}
+                `;
+            }).join('');
+
+            const cohortCards = cohortRows.map(row => {
+                const progressValue = row.stage3Count ? row.stage3Avg - row.stage1Avg : null;
+                const progressPct = row.stage3Count && row.stage1Avg ? Math.round((progressValue / row.stage1Avg) * 100) : 0;
+                const trendTone = !row.stage3Count ? 'pending' : progressValue > 0 ? 'up' : progressValue < 0 ? 'down' : 'flat';
+                const trendLabel = !row.stage3Count ? 'Pending M3' : progressValue > 0 ? 'Improving' : progressValue < 0 ? 'Softening' : 'Flat';
+
+                return `
+                <div class="cohort-card">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Join Cohort</div>
+                            <div class="mt-2 text-2xl font-black text-slate-900">${formatMonth(row.joinMonthKey)}</div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="executive-summary-badge">${row.hires} hires</div>
+                            <div class="cohort-trend-badge ${trendTone}">${trendLabel}</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 cohort-stage-grid">
+                        <div class="cohort-stage-box stage-1">
+                            <div class="text-xs font-black uppercase tracking-[0.14em] text-blue-700">Month 1</div>
+                            <div class="mt-2 text-2xl font-black data-font text-slate-900">${formatRoundedK(row.stage1Avg)}</div>
+                        </div>
+                        <div class="cohort-stage-box stage-2">
+                            <div class="text-xs font-black uppercase tracking-[0.14em] text-teal-700">Month 2</div>
+                            <div class="mt-2 text-2xl font-black data-font text-slate-900">${row.stage2Count ? formatRoundedK(row.stage2Avg) : '-'}</div>
+                        </div>
+                        <div class="cohort-stage-box stage-3">
+                            <div class="text-xs font-black uppercase tracking-[0.14em] text-orange-700">Month 3</div>
+                            <div class="mt-2 text-2xl font-black data-font text-slate-900">${row.stage3Count ? formatRoundedK(row.stage3Avg) : '-'}</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 executive-note">Progress: ${row.stage3Count ? `${progressValue >= 0 ? '+' : ''}${formatRoundedK(progressValue)} / ${progressPct >= 0 ? '+' : ''}${progressPct}% vs Month 1` : 'Month 3 not available yet'}</div>
+                </div>
+            `;
+            }).join('');
+
+            chart.innerHTML = `
+                <div class="grid gap-5">
+                    <svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="New hire first 3 months sales progression">
+                        <rect x="0" y="0" width="${width}" height="${height}" rx="22" fill="transparent"></rect>
+                        ${gridLines}
+                        <line x1="${padding.left}" y1="${padding.top + innerHeight}" x2="${width - padding.right}" y2="${padding.top + innerHeight}" stroke="rgba(15,23,42,0.22)" stroke-width="1.5" />
+                        ${xLabels}
+                        ${seriesMarkup}
+                    </svg>
+                    <div class="grid gap-4 xl:grid-cols-3">
+                        ${cohortCards}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAll() {
+            normalizeCopyDeck();
+            renderMonthFilters();
+            renderBrandFilters();
+            renderPositionFilters();
+            renderOverviewBrandFilters();
+            renderDetailStayFilters();
+            renderDetailSortFilters();
+            renderDetailPositionFilters();
+            renderDetailSalesFilters();
+            renderDetailRealizedFilters();
+            renderSummaryCards();
+            renderKeyAlerts();
+            renderBrandPieChart();
+            renderBucketPieChart();
+            renderBrandCards();
+            renderBrandPerformanceSection();
+            renderOverviewTable();
+            renderProductivitySection();
+            renderCohortProgressionSection();
+            renderDetailTable();
+            ensurePublicSafePresentation();
+            applyVisualPolish();
+            ensureSectionKicker(document.getElementById('cohortProgressionSection'), 'Ramp-Up Review');
         }
 
         async function init() {
