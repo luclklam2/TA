@@ -5020,6 +5020,67 @@
             ensureSectionKicker(document.getElementById('cohortProgressionSection'), 'Ramp-Up Review');
         }
 
+        function applyVisualPolish() {
+            document.title = '2026 New Hire In/Out Executive Review';
+            document.body.classList.add('executive-mode');
+
+            const header = document.querySelector('header.glass-card');
+            if (header) {
+                header.classList.add('executive-hero');
+                const badge = header.querySelector('.inline-flex.rounded-full');
+                const title = header.querySelector('h1');
+                const intro = header.querySelector('p');
+                const actionsWrap = header.querySelector('.flex.flex-wrap.gap-3');
+                const actions = header.querySelectorAll('a');
+                const snapshotCard = header.querySelector('.rounded-3xl.bg-slate-900');
+                const refreshCard = header.querySelector('button[onclick="init()"]');
+
+                if (badge) badge.textContent = 'Executive Dashboard';
+                if (title) title.textContent = '2026 新人 In / Out Executive Review';
+                if (intro) {
+                    intro.innerHTML = '以新人名單為基礎，按月份、品牌、Position 與留任日數 bucket 做管理層 review；有 Term Date 會納入離職分析，冇 Term Date 會自動列為 <span class="text-teal-700">Still Active</span>。';
+                }
+                if (actions[0]) {
+                    actions[0].textContent = 'Dashboard';
+                    actions[0].classList.add('header-action');
+                }
+                if (actions[1]) {
+                    actions[1].remove();
+                }
+                if (actionsWrap && !actionsWrap.querySelector('a')) {
+                    actionsWrap.remove();
+                }
+                if (snapshotCard) {
+                    const copy = snapshotCard.querySelector('.mt-2.text-sm');
+                    if (copy) copy.textContent = '頁面統計快照日期';
+                }
+                if (refreshCard) {
+                    const label = refreshCard.querySelector('.text-xs');
+                    const headline = refreshCard.querySelector('.mt-3.text-2xl');
+                    const note = refreshCard.querySelector('#refreshMeta');
+                    if (label) label.textContent = 'Refresh';
+                    if (headline) headline.textContent = '重新載入資料';
+                    if (note && /蝑|頛/.test(note.textContent || '')) note.textContent = 'Waiting for refresh...';
+                }
+            }
+
+            ensureSectionKicker(document.getElementById('summaryCards')?.closest('div')?.querySelector('#summaryCards')?.parentElement, 'Executive Highlights');
+            const keyAlertsSection = document.getElementById('keyAlertsSection');
+            if (keyAlertsSection) ensureSectionKicker(keyAlertsSection, 'Exception Summary');
+            const brandSnapshotSection = document.getElementById('brandCards')?.closest('section');
+            if (brandSnapshotSection) ensureSectionKicker(brandSnapshotSection, 'Brand Snapshot');
+            const performanceSection = document.getElementById('brandPerformanceMeta')?.closest('section');
+            if (performanceSection) ensureSectionKicker(performanceSection, 'Performance Review');
+            const overviewSection = document.getElementById('overviewMeta')?.closest('section');
+            if (overviewSection) ensureSectionKicker(overviewSection, 'Trend Review');
+            const productivitySection = document.getElementById('productivityMeta')?.closest('section');
+            if (productivitySection) ensureSectionKicker(productivitySection, 'Productivity');
+            const detailReviewSection = document.getElementById('detailSummary')?.closest('section');
+            if (detailReviewSection) ensureSectionKicker(detailReviewSection, 'Detail Review');
+
+            document.getElementById('loadingStatus')?.replaceChildren(document.createTextNode('Loading Sheet6 and Sales data...'));
+        }
+
         async function init() {
             document.getElementById('loadingStatus').textContent = '正在讀取 Sheet6 + Sales...';
             document.getElementById('loadingStatus').classList.remove('hidden');
